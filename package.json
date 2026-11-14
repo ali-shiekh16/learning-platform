@@ -1,0 +1,38 @@
+{
+  "name": "connector-learning-platform",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev -w @app/server\" \"npm run dev -w @app/web\"",
+    "build": "npm run build -w @app/web && npm run build -w @app/server",
+    "start": "npm run start -w @app/server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "eslint . --fix && prettier --write .",
+    "test": "npm run test --workspaces --if-present",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "concurrently": "^10.0.7",
+    "eslint": "^10.15.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "globals": "^17.0.0",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.2"
+  },
+  "allowScripts": {
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true,
+    "esbuild@0.28.2": true
+  }
+}
