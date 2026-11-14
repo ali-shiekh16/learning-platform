@@ -13,10 +13,6 @@ const SocketContext = createContext<SocketContextValue>({ socket: null, status: 
 
 /**
  * Opens one Socket.IO connection for the signed-in user and shares it with the app.
- *
- * The connection authenticates with the session cookie (same origin, sent
- * automatically), so it only exists while `userId` is set and is closed on sign-out.
- * Socket.IO reconnects by itself after network drops.
  */
 export function SocketProvider({
   userId,

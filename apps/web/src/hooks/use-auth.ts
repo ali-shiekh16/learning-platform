@@ -1,35 +1,38 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { PublicUser } from '@app/shared'
-import { api, ApiError } from '@/lib/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { SignInInput, SignUpInput } from '@app/shared'
+import * as authService from '@/services/auth.service'
+import { queryKeys } from './query-keys'
 
-export const currentUserKey = ['current-user'] as const
-
-/** Fetch the signed-in user, or null when nobody is signed in (401). */
-async function fetchCurrentUser(): Promise<PublicUser | null> {
-  try {
-    return await api<PublicUser>('/api/me')
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401) return null
-    throw error
-  }
-}
-
-/**
- * The signed-in user, cached by TanStack Query and shared by every component.
- * `user` is undefined while loading, null when signed out.
- */
 export function useCurrentUser() {
   const query = useQuery({
-    queryKey: currentUserKey,
-    queryFn: fetchCurrentUser,
+    queryKey: queryKeys.currentUser,
+    queryFn: authService.getCurrentUser,
     staleTime: 5 * 60 * 1000,
     retry: false,
   })
   return { user: query.data, isLoading: query.isPending, error: query.error }
 }
 
-/** Re-read the current user, e.g. after signing in or out. */
-export function useRefreshCurrentUser() {
+export function useSignIn() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: currentUserKey })
+  return useMutation({
+    mutationFn: (input: SignInInput) => authService.signIn(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.currentUser }),
+  })
+}
+
+export function useSignUp() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: SignUpInput) => authService.signUp(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.currentUser }),
+  })
+}
+
+export function useSignOut() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: authService.signOut,
+    onSuccess: () => queryClient.clear(),
+  })
 }

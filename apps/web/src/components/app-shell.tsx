@@ -1,9 +1,8 @@
-import { useQueryClient } from '@tanstack/react-query'
 import { Link, Outlet, useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useCurrentUser } from '@/features/auth/use-current-user'
-import { authClient } from '@/lib/auth-client'
+import { useCurrentUser, useSignOut } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { useSocket, type SocketStatus } from '@/lib/socket'
 
@@ -17,15 +16,14 @@ const STATUS_LABEL: Record<SocketStatus, string> = {
 export function AppShell() {
   const { user } = useCurrentUser()
   const { status } = useSocket()
-  const queryClient = useQueryClient()
+  const signOut = useSignOut()
   const navigate = useNavigate()
 
-  async function signOut() {
-    await authClient.signOut()
-    // Drop every cached query so nothing from this account leaks into the next one.
-    queryClient.clear()
-    await navigate('/sign-in', { replace: true })
-  }
+  const handleSignOut = () =>
+    signOut.mutate(undefined, {
+      onSuccess: () => navigate('/sign-in', { replace: true }),
+      onError: error => toast.error(error.message),
+    })
 
   return (
     <div className="min-h-svh bg-muted/40">
@@ -58,7 +56,7 @@ export function AppShell() {
                 </Badge>
               </>
             )}
-            <Button variant="ghost" size="sm" onClick={signOut}>
+            <Button variant="ghost" size="sm" onClick={handleSignOut} disabled={signOut.isPending}>
               Sign out
             </Button>
           </div>

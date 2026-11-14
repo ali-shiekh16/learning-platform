@@ -1,15 +1,11 @@
 import { createBrowserRouter } from 'react-router'
 import { AppShell } from '@/components/app-shell'
 import { FullPageMessage } from '@/components/full-page'
-import { RequireAuth } from '@/features/auth/require-auth'
-import { SignInPage } from '@/features/auth/sign-in-page'
-import { SignUpPage } from '@/features/auth/sign-up-page'
-import { DashboardPage } from '@/features/dashboard/dashboard-page'
+import { RequireAuth } from '@/components/require-auth'
+import { DashboardPage } from '@/pages/dashboard-page'
+import { SignInPage } from '@/pages/sign-in-page'
+import { SignUpPage } from '@/pages/sign-up-page'
 
-/**
- * Route map. Everything except sign-in/sign-up sits behind <RequireAuth>.
- * Role-specific routes nest another <RequireAuth roles={[...]}> (added per module).
- */
 export const router = createBrowserRouter([
   { path: '/sign-in', element: <SignInPage /> },
   { path: '/sign-up', element: <SignUpPage /> },

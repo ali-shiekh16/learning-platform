@@ -1,20 +1,17 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { signUpSchema, type SignUpInput } from '@app/shared'
-import { Button } from '@/components/ui/button'
+import { AuthLayout } from '@/components/auth-layout'
 import { FormField } from '@/components/form-field'
-import { authClient } from '@/lib/auth-client'
-import { AuthLayout } from './auth-layout'
-import { useCurrentUser, useRefreshCurrentUser } from './use-current-user'
+import { Button } from '@/components/ui/button'
+import { useCurrentUser, useSignUp } from '@/hooks/use-auth'
 
 /** Self-registration always creates a Student; teacher accounts are provisioned. */
 export function SignUpPage() {
   const { user } = useCurrentUser()
-  const refreshUser = useRefreshCurrentUser()
+  const signUp = useSignUp()
   const navigate = useNavigate()
-  const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
@@ -23,24 +20,11 @@ export function SignUpPage() {
 
   if (user) return <Navigate to="/" replace />
 
-  const onSubmit = form.handleSubmit(async values => {
-    setServerError(null)
-    const { error } = await authClient.signUp.email(values)
-    if (error) {
-      setServerError(
-        error.code === 'USER_ALREADY_EXISTS' || error.status === 422
-          ? 'An account with this email already exists.'
-          : error.status === 429
-            ? 'Too many attempts. Wait a minute and try again.'
-            : 'Could not create the account. Please try again.',
-      )
-      return
-    }
-    await refreshUser()
-    await navigate('/', { replace: true })
-  })
+  const onSubmit = form.handleSubmit(values =>
+    signUp.mutate(values, { onSuccess: () => navigate('/', { replace: true }) }),
+  )
 
-  const { errors, isSubmitting } = form.formState
+  const { errors } = form.formState
 
   return (
     <AuthLayout
@@ -82,13 +66,13 @@ export function SignUpPage() {
           error={errors.password}
           {...form.register('password')}
         />
-        {serverError && (
+        {signUp.error && (
           <p role="alert" className="text-sm text-destructive">
-            {serverError}
+            {signUp.error.message}
           </p>
         )}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating account…' : 'Create account'}
+        <Button type="submit" disabled={signUp.isPending}>
+          {signUp.isPending ? 'Creating account…' : 'Create account'}
         </Button>
       </form>
     </AuthLayout>

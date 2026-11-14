@@ -1,22 +1,19 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { signInSchema, type SignInInput } from '@app/shared'
-import { Button } from '@/components/ui/button'
+import { AuthLayout } from '@/components/auth-layout'
 import { FormField } from '@/components/form-field'
-import { authClient } from '@/lib/auth-client'
-import { AuthLayout } from './auth-layout'
-import { safeRedirect } from './safe-redirect'
-import { useCurrentUser, useRefreshCurrentUser } from './use-current-user'
+import { Button } from '@/components/ui/button'
+import { useCurrentUser, useSignIn } from '@/hooks/use-auth'
+import { safeRedirect } from '@/lib/safe-redirect'
 
 export function SignInPage() {
   const { user } = useCurrentUser()
-  const refreshUser = useRefreshCurrentUser()
+  const signIn = useSignIn()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const redirectTo = safeRedirect(params.get('redirect'))
-  const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
@@ -25,22 +22,11 @@ export function SignInPage() {
 
   if (user) return <Navigate to={redirectTo} replace />
 
-  const onSubmit = form.handleSubmit(async values => {
-    setServerError(null)
-    const { error } = await authClient.signIn.email(values)
-    if (error) {
-      setServerError(
-        error.status === 429
-          ? 'Too many attempts. Wait a minute and try again.'
-          : 'Incorrect email or password.',
-      )
-      return
-    }
-    await refreshUser()
-    await navigate(redirectTo, { replace: true })
-  })
+  const onSubmit = form.handleSubmit(values =>
+    signIn.mutate(values, { onSuccess: () => navigate(redirectTo, { replace: true }) }),
+  )
 
-  const { errors, isSubmitting } = form.formState
+  const { errors } = form.formState
 
   return (
     <AuthLayout
@@ -75,13 +61,13 @@ export function SignInPage() {
           error={errors.password}
           {...form.register('password')}
         />
-        {serverError && (
+        {signIn.error && (
           <p role="alert" className="text-sm text-destructive">
-            {serverError}
+            {signIn.error.message}
           </p>
         )}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        <Button type="submit" disabled={signIn.isPending}>
+          {signIn.isPending ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
     </AuthLayout>

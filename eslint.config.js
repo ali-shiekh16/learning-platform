@@ -25,6 +25,25 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
+    // Frontend layering: pages and components get data through hooks only.
+    files: ['apps/web/src/pages/**', 'apps/web/src/components/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['@/services/*'], message: 'Use a hook from @/hooks instead.' },
+            { group: ['@tanstack/react-query'], message: 'React Query belongs in @/hooks.' },
+            {
+              group: ['better-auth', 'better-auth/*'],
+              message: 'Auth calls belong in @/services.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     rules: {
       // House style: no braces around single-line bodies of if/else/loops
       curly: ['error', 'multi-or-nest'],

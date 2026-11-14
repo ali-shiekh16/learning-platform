@@ -1,6 +1,6 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useCurrentUser } from '@/features/auth/use-current-user'
+import { useCurrentUser } from '@/hooks/use-auth'
 import type { Role } from '@app/shared'
 
 interface Feature {
@@ -51,7 +51,7 @@ const FEATURES: Record<Role, Feature[]> = {
 /** Landing page after sign-in. What it offers depends on the user's role. */
 export function DashboardPage() {
   const { user } = useCurrentUser()
-  if (!user) return null // RequireAuth guarantees a user; this narrows the type
+  if (!user) return null
 
   return (
     <div className="grid gap-6">

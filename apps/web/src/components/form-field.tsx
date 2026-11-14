@@ -3,10 +3,6 @@ import type { FieldError } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-/**
- * Label + input + validation message, wired for accessibility:
- * the message is linked with aria-describedby and the input is marked aria-invalid.
- */
 export function FormField({
   id,
   label,

@@ -14,12 +14,9 @@ export class ApiError extends Error {
 }
 
 /**
- * fetch() wrapper for our REST API.
- * - Sends and parses JSON.
- * - Always includes cookies (the session lives in an httpOnly cookie).
- * - Turns every non-2xx response into an ApiError using the standard error body.
+ * fetch() wrapper for our REST API. Only services call it.
  */
-export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function http(path: string, init: RequestInit = {}): Promise<unknown> {
   const headers = new Headers(init.headers)
   if (init.body !== undefined) headers.set('content-type', 'application/json')
 
@@ -30,7 +27,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new ApiError(0, 'INTERNAL_ERROR', 'Cannot reach the server. Check your connection.')
   }
 
-  if (response.status === 204) return undefined as T
+  if (response.status === 204) return undefined
   const body: unknown = await response.json().catch(() => null)
 
   if (!response.ok) {
@@ -41,5 +38,5 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     }
     throw new ApiError(response.status, 'INTERNAL_ERROR', `Request failed (${response.status})`)
   }
-  return body as T
+  return body
 }
