@@ -4,11 +4,6 @@ import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '@app/shared'
 import { env } from '../config/env'
 import { prisma } from '../db/prisma'
 
-/**
- * better-auth handles *authentication*: password hashing, sessions stored in
- * Postgres, the session cookie, CSRF/origin checks and sign-in rate limiting.
- * *Authorization* (who may do what) is our own code — see ./guards.ts.
- */
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
@@ -27,11 +22,10 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       role: {
+        // * Clients can never set the role
         type: 'string',
         required: false,
         defaultValue: 'STUDENT',
-        // Clients can never set the role, at sign-up or afterwards. Without this,
-        // anyone could register as a teacher by adding `role` to the request body.
         input: false,
       },
     },
@@ -42,11 +36,10 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24, // refresh the expiry at most once a day
   },
 
-  // better-auth only enables this in production by default. We enable it in development
-  // too so the behaviour is visible locally, and disable it for the automated tests,
-  // which create many accounts in quick succession.
+  // Counted per client IP and path; the IP comes from the X-Forwarded-For header our
+  // Fastify adapter sets (see auth.routes.ts). Enabled in every environment.
   rateLimit: {
-    enabled: env.NODE_ENV !== 'test',
+    enabled: true,
     window: 60,
     max: 100,
     customRules: {

@@ -2,6 +2,9 @@ import type { FastifyInstance } from 'fastify'
 import { Server } from 'socket.io'
 import type { PublicUser } from '@app/shared'
 import { getUserFromHeaders } from '../auth/session'
+import { env } from '../config/env'
+
+const appOrigin = new URL(env.BETTER_AUTH_URL).origin
 
 /** Per-connection data, set once during the handshake. */
 export interface SocketData {
@@ -17,19 +20,17 @@ export type IoServer = Server<
 
 /**
  * Attach Socket.IO to Fastify's HTTP server.
- *
- * Authentication happens once, in the handshake middleware: the browser sends the
- * same session cookie it uses for REST calls, and we resolve it with the same
- * function (`getUserFromHeaders`). Connections without a valid session are refused,
- * so every event handler can rely on `socket.data.user` being present.
- *
- * Event handlers for chat, whiteboard and meeting control are added in later modules.
  */
 export function createSocketServer(app: FastifyInstance): IoServer {
   const io: IoServer = new Server(app.server, {
     path: '/socket.io',
-    // Same-origin in production; in development the Vite proxy forwards /socket.io
-    cors: { origin: false },
+    cors: { origin: false }, // Same-origin in production; in development the Vite proxy forwards /socket.io
+    // CORS doesn't cover WebSockets: reject handshakes from other sites (cross-site
+    // WebSocket hijacking). Same-origin polling may omit Origin, so missing is allowed.
+    allowRequest: (req, callback) => {
+      const origin = req.headers.origin
+      callback(null, origin === undefined || origin === appOrigin)
+    },
   })
 
   io.use(async (socket, next) => {
@@ -51,8 +52,6 @@ export function createSocketServer(app: FastifyInstance): IoServer {
 
   io.on('connection', socket => {
     const { user } = socket.data
-    // A personal room lets the server reach every tab of one user,
-    // e.g. to tell them they were removed from a meeting.
     void socket.join(`user:${user.id}`)
     app.log.debug({ userId: user.id, socketId: socket.id }, 'socket connected')
 

@@ -1,5 +1,6 @@
 import Fastify, { type FastifyServerOptions } from 'fastify'
 import helmet from '@fastify/helmet'
+import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import {
@@ -11,23 +12,31 @@ import {
 import { authRoutes } from './auth/auth.routes'
 import { errorHandler } from './plugins/error-handler'
 
-/**
- * Build the Fastify application without starting it. Keeping construction separate
- * from `listen()` lets tests drive the app in-process with `app.inject()`.
- */
-export async function buildApp(options: FastifyServerOptions = {}) {
+export interface AppConfig {
+  /** Requests per minute per client IP for the REST API (auth routes excluded). */
+  apiRateLimit?: number
+}
+
+export async function buildApp(options: FastifyServerOptions = {}, config: AppConfig = {}) {
   const app = Fastify(options).withTypeProvider<ZodTypeProvider>()
 
-  // Zod schemas on routes do three jobs: validate input, type the handler, document the API.
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
 
+  // Declared up front so every request object has the same shape (set by the auth guards).
+  app.decorateRequest('user', null)
+
   await app.register(helmet, {
-    // The SPA is served by Vite in development; a strict CSP is configured with the
-    // production build (Module 6), once the LiveKit and Excalidraw origins are known.
     contentSecurityPolicy: false,
   })
   await app.register(errorHandler)
+
+  // Generous per-IP limit that stops scripts, not people. Keyed by IP because it runs
+  // before authentication; a classroom behind one school IP shares this budget.
+  await app.register(rateLimit, {
+    max: config.apiRateLimit ?? 600,
+    timeWindow: '1 minute',
+  })
 
   await app.register(swagger, {
     openapi: {
@@ -41,7 +50,9 @@ export async function buildApp(options: FastifyServerOptions = {}) {
   })
   await app.register(swaggerUi, { routePrefix: '/api/docs' })
 
-  app.get('/api/health', { schema: { hide: true } }, async () => ({ status: 'ok' }))
+  app.get('/api/health', { schema: { hide: true }, config: { rateLimit: false } }, async () => ({
+    status: 'ok',
+  }))
   await app.register(authRoutes)
 
   return app

@@ -11,6 +11,16 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET must be at least 32 characters'),
   BETTER_AUTH_URL: z.url(),
+  // Set when running behind a reverse proxy (e.g. Render, Railway), so request.ip is
+  // the visitor's address from X-Forwarded-For instead of the proxy's.
+  // "true" trusts any proxy; otherwise a comma-separated list of proxy IPs/CIDRs.
+  // Unset or "false": trust none, so clients cannot fake their address.
+  TRUST_PROXY: z
+    .string()
+    .optional()
+    .transform(value =>
+      value === undefined || value === 'false' ? false : value === 'true' ? true : value,
+    ),
 })
 
 export type Env = z.infer<typeof envSchema>

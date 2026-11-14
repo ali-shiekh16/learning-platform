@@ -5,16 +5,14 @@ import { auth } from './auth'
 import { currentUser, requireAuth } from './guards'
 
 /**
- * Auth routes.
- *
- * better-auth is framework-agnostic: it speaks the standard Fetch API
- * (Request in, Response out). This plugin adapts Fastify's request/reply to that.
+ * This plugin adapts Fastify's request/reply to that.
  */
 export async function authRoutes(app: FastifyInstance) {
   app.route({
     method: ['GET', 'POST'],
     url: '/api/auth/*',
     schema: { hide: true }, // better-auth's own endpoints; not part of our OpenAPI docs
+    config: { rateLimit: false }, // better-auth applies its own, stricter limits
     async handler(request, reply) {
       const url = new URL(request.url, requestOrigin(request))
       const body =
@@ -22,12 +20,14 @@ export async function authRoutes(app: FastifyInstance) {
           ? undefined
           : JSON.stringify(request.body)
 
+      // better-auth identifies clients (for rate limiting and the session's ipAddress)
+      // only by X-Forwarded-For. Always overwrite it with the address Fastify resolved,
+      // so a client cannot pick its own IP by sending a fake header.
+      const headers = fromNodeHeaders(request.headers)
+      headers.set('x-forwarded-for', request.ip)
+
       const response = await auth.handler(
-        new Request(url, {
-          method: request.method,
-          headers: fromNodeHeaders(request.headers),
-          body,
-        }),
+        new Request(url, { method: request.method, headers, body }),
       )
 
       reply.status(response.status)

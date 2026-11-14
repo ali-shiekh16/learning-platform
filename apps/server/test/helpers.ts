@@ -11,12 +11,22 @@ export interface TestUser {
   cookie: string
 }
 
+/**
+ * A random private IPv4 address. Rate limits are counted per IP, so giving each test
+ * its own address keeps tests from sharing (and exhausting) one counter.
+ */
+export function randomIp(): string {
+  const octet = () => Math.floor(Math.random() * 254) + 1
+  return `10.${octet()}.${octet()}.${octet()}`
+}
+
 /** Sign up a fresh user through the real auth endpoint and return its session cookie. */
 export async function signUp(app: App, role: Role = 'STUDENT'): Promise<TestUser> {
   const email = `user-${randomUUID()}@test.local`
   const res = await app.inject({
     method: 'POST',
     url: '/api/auth/sign-up/email',
+    remoteAddress: randomIp(),
     headers: { origin: ORIGIN },
     payload: { name: 'Test User', email, password: 'password123' },
   })
