@@ -9,7 +9,7 @@ The backend serves about 20 REST routes and a dozen socket events. The brief exp
 Use **Fastify** with `fastify-type-provider-zod` and `@fastify/swagger`.
 
 ## Reasons
-- **One schema, three outputs.** Each route's Zod schema provides (1) request validation with clean 400 errors, (2) inferred TypeScript types for `request.body`/`params`/`query`, and (3) the generated OpenAPI documentation at `/docs`.
+- **One schema, three outputs.** Each route's Zod schema provides (1) request validation with clean 400 errors, (2) inferred TypeScript types for `request.body`/`params`/`query`, and (3) the generated OpenAPI documentation at `/api/docs`.
 - **Plugin encapsulation.** Each feature (auth, meetings, chat, whiteboard, sudoku, reports) is a plugin with its own routes and hooks — modular structure without a heavy framework.
 - **Built in:** structured logging (pino) with request ids, async error propagation, a central error handler for a consistent error shape.
 - Performance is better than Express, but irrelevant at this scale and not a deciding factor.

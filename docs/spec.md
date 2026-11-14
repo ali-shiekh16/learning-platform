@@ -139,7 +139,7 @@ Error shape for all failures: `{ "error": { "code": string, "message": string, "
 | GET | `/api/reports` | auth | Student: own. Teacher: their students' (filter by student) |
 | GET | `/api/reports/:gameId` | owner or permitted teacher | Single report |
 
-API documentation is generated from the Zod route schemas as an OpenAPI page at `/docs`.
+API documentation is generated from the Zod route schemas as an OpenAPI page at `/api/docs` (under `/api` so it never collides with a front-end route).
 
 ---
 
@@ -294,5 +294,5 @@ Recording, password reset and email delivery, multiple whiteboards per meeting, 
 | 6 | Collaborative whiteboard | §7F |
 | 7 | Text-to-speech | §7G |
 | 8 | Source code & Git repository | Small, meaningful commits |
-| 9 | Database structure & API docs | `docs/database.md` + OpenAPI at `/docs` |
+| 9 | Database structure & API docs | `docs/database.md` + OpenAPI at `/api/docs` |
 | 10 | README with setup | Setup, architecture, decisions, assumptions, known limitations |
