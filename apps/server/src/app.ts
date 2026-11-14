@@ -23,7 +23,6 @@ export async function buildApp(options: FastifyServerOptions = {}, config: AppCo
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
 
-  // Declared up front so every request object has the same shape (set by the auth guards).
   app.decorateRequest('user', null)
 
   await app.register(helmet, {
@@ -31,8 +30,6 @@ export async function buildApp(options: FastifyServerOptions = {}, config: AppCo
   })
   await app.register(errorHandler)
 
-  // Generous per-IP limit that stops scripts, not people. Keyed by IP because it runs
-  // before authentication; a classroom behind one school IP shares this budget.
   await app.register(rateLimit, {
     max: config.apiRateLimit ?? 600,
     timeWindow: '1 minute',

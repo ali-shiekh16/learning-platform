@@ -20,9 +20,6 @@ export async function authRoutes(app: FastifyInstance) {
           ? undefined
           : JSON.stringify(request.body)
 
-      // better-auth identifies clients (for rate limiting and the session's ipAddress)
-      // only by X-Forwarded-For. Always overwrite it with the address Fastify resolved,
-      // so a client cannot pick its own IP by sending a fake header.
       const headers = fromNodeHeaders(request.headers)
       headers.set('x-forwarded-for', request.ip)
 
