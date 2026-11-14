@@ -11,8 +11,7 @@ const STATUS_BY_CODE: Record<ErrorCode, number> = {
 }
 
 /**
- * An expected, user-facing failure (wrong role, missing record, ...). Route code
- * throws these; the central error handler turns them into the standard error body.
+ * An expected, user-facing failure
  * Anything that is *not* an AppError is treated as a bug and reported as a 500.
  */
 export class AppError extends Error {

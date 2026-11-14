@@ -6,12 +6,7 @@ import { AppError } from '../lib/errors'
 
 /**
  * One place that turns every failure into the standard error body
- * `{ error: { code, message, details? } }` (see @app/shared/errors).
- *
- * - Request validation failures (Zod) → 400 VALIDATION_ERROR with per-field details
- * - AppError (expected failures thrown by our code) → its own status and code
- * - Unknown errors → logged with stack trace, reported as a generic 500
- *   (internal details are never sent to the client)
+ * `{ error: { code, message, details? } }`
  */
 export const errorHandler = fp(async (app: FastifyInstance) => {
   app.setErrorHandler((error: FastifyError, request, reply) => {

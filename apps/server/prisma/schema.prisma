@@ -1,6 +1,3 @@
-// Database schema. Tables are added module by module; each change gets its own migration.
-// Docs: docs/database.md
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,7 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── Authentication (tables required by better-auth, see ADR 006) ────────────────
+// ─── Authentication (tables required by better-auth) ────────────────
 
 model User {
   id            String    @id
@@ -18,9 +15,7 @@ model User {
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
-  // "STUDENT" | "TEACHER". A string rather than an enum: better-auth has a known
-  // issue with enum-typed additional fields. Narrowed by roleSchema in @app/shared.
-  role          String    @default("STUDENT")
+  role          String    @default("STUDENT") // "STUDENT" | "TEACHER
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
@@ -44,8 +39,6 @@ model Session {
   @@map("sessions")
 }
 
-/// One row per way a user can sign in. For email/password, providerId = "credential"
-/// and `password` holds the hash (never the plain password).
 model Account {
   id                    String    @id
   accountId             String

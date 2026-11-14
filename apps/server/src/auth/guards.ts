@@ -5,14 +5,12 @@ import { getUserFromHeaders } from './session'
 
 declare module 'fastify' {
   interface FastifyRequest {
-    /** Set by `requireAuth`. Only read it in routes that use the guard. */
     user: PublicUser | null
   }
 }
 
 /**
  * Route guard: rejects the request with 401 unless it carries a valid session,
- * and attaches the user to `request.user`.
  */
 export const requireAuth: preHandlerAsyncHookHandler = async (request: FastifyRequest) => {
   const user = await getUserFromHeaders(request.headers)
@@ -22,7 +20,6 @@ export const requireAuth: preHandlerAsyncHookHandler = async (request: FastifyRe
 
 /**
  * Route guard: requires a session *and* one of the given roles (403 otherwise).
- * Usage: `{ preHandler: requireRole('TEACHER') }`
  */
 export function requireRole(...roles: Role[]): preHandlerAsyncHookHandler {
   return async function (request: FastifyRequest, reply: FastifyReply) {

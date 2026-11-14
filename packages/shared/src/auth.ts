@@ -1,10 +1,6 @@
 import { z } from 'zod'
 import { roleSchema } from './roles'
 
-/**
- * Input rules for the sign-up and sign-in forms. The web app validates with these
- * before sending, and the server enforces the same limits in better-auth's config.
- */
 export const PASSWORD_MIN_LENGTH = 8
 export const PASSWORD_MAX_LENGTH = 128
 

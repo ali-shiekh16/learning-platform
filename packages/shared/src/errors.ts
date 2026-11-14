@@ -1,8 +1,7 @@
 import { z } from 'zod'
 
 /**
- * Every failed API request returns this shape, so the web app can handle errors in
- * one place instead of guessing per endpoint.
+ * Every failed API request returns this shape.
  */
 export const ERROR_CODES = [
   'VALIDATION_ERROR',
