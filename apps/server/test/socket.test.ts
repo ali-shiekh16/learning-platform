@@ -3,7 +3,6 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { io as connect, type Socket } from 'socket.io-client'
 import { buildApp, type App } from '../src/app'
 import { prisma } from '../src/db/prisma'
-import { createSocketServer } from '../src/realtime/socket'
 import { ORIGIN, signUp } from './helpers'
 
 let app: App
@@ -11,7 +10,6 @@ let url: string
 
 beforeAll(async () => {
   app = await buildApp()
-  createSocketServer(app)
   await app.listen({ port: 0, host: '127.0.0.1' })
   url = `http://127.0.0.1:${(app.server.address() as AddressInfo).port}`
 })

@@ -10,11 +10,23 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 import { authRoutes } from './auth/auth.routes'
+import { env } from './config/env'
+import { prisma } from './db/prisma'
+import { createLiveKitGateway, type LiveKitGateway } from './integrations/livekit'
+import { createChatService } from './modules/chat/chat.service'
+import { registerChatSocketHandlers } from './modules/chat/chat.socket'
+import { meetingRoutes } from './modules/meetings/meetings.routes'
+import { createMeetingsService } from './modules/meetings/meetings.service'
+import { registerMeetingSocketHandlers } from './modules/meetings/meetings.socket'
 import { errorHandler } from './plugins/error-handler'
+import { createRealtimeNotifier } from './realtime/notifier'
+import { createSocketServer } from './realtime/socket'
 
 export interface AppConfig {
   /** Requests per minute per client IP for the REST API (auth routes excluded). */
   apiRateLimit?: number
+  /** Replaces the real LiveKit client, e.g. with a fake in tests. */
+  livekit?: LiveKitGateway
 }
 
 export async function buildApp(options: FastifyServerOptions = {}, config: AppConfig = {}) {
@@ -47,10 +59,35 @@ export async function buildApp(options: FastifyServerOptions = {}, config: AppCo
   })
   await app.register(swaggerUi, { routePrefix: '/api/docs' })
 
+  // Composition root: every dependency is created here and passed in explicitly.
+  const io = createSocketServer(app)
+
+  const livekit =
+    config.livekit ??
+    createLiveKitGateway({
+      url: env.LIVEKIT_URL,
+      apiKey: env.LIVEKIT_API_KEY,
+      apiSecret: env.LIVEKIT_API_SECRET,
+    })
+
+  const meetings = createMeetingsService({
+    prisma,
+    livekit,
+    notifier: createRealtimeNotifier(io),
+    log: app.log,
+  })
+  const chat = createChatService({ prisma, meetings })
+
+  io.on('connection', socket => {
+    registerMeetingSocketHandlers(io, socket, { meetings, log: app.log })
+    registerChatSocketHandlers(socket, { chat, log: app.log })
+  })
+
   app.get('/api/health', { schema: { hide: true }, config: { rateLimit: false } }, async () => ({
     status: 'ok',
   }))
   await app.register(authRoutes)
+  await app.register(meetingRoutes, { meetings, chat })
 
   return app
 }

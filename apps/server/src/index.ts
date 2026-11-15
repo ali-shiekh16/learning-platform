@@ -1,7 +1,6 @@
 import { env, isProduction } from './config/env'
 import { buildApp } from './app'
 import { prisma } from './db/prisma'
-import { createSocketServer } from './realtime/socket'
 
 const app = await buildApp({
   trustProxy: env.TRUST_PROXY,
@@ -9,8 +8,6 @@ const app = await buildApp({
     ? { level: 'info' }
     : { level: 'debug', transport: { target: 'pino-pretty', options: { ignore: 'pid,hostname' } } },
 })
-
-createSocketServer(app)
 
 async function shutdown(signal: string) {
   app.log.info(`${signal} received, shutting down`)

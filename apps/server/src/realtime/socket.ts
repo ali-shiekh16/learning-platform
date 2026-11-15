@@ -1,8 +1,10 @@
 import type { FastifyInstance } from 'fastify'
 import { Server } from 'socket.io'
-import type { PublicUser } from '@app/shared'
+import type { Socket } from 'socket.io'
+import type { ClientToServerEvents, PublicUser, ServerToClientEvents } from '@app/shared'
 import { getUserFromHeaders } from '../auth/session'
 import { env } from '../config/env'
+import { userRoom } from './notifier'
 
 const appOrigin = new URL(env.BETTER_AUTH_URL).origin
 
@@ -11,9 +13,17 @@ export interface SocketData {
   user: PublicUser
 }
 
+// Event maps come from @app/shared, so the client and server agree on every event
+// name and payload at compile time.
 export type IoServer = Server<
+  ClientToServerEvents,
+  ServerToClientEvents,
   Record<string, never>,
-  Record<string, never>,
+  SocketData
+>
+export type IoSocket = Socket<
+  ClientToServerEvents,
+  ServerToClientEvents,
   Record<string, never>,
   SocketData
 >
@@ -25,8 +35,6 @@ export function createSocketServer(app: FastifyInstance): IoServer {
   const io: IoServer = new Server(app.server, {
     path: '/socket.io',
     cors: { origin: false }, // Same-origin in production; in development the Vite proxy forwards /socket.io
-    // CORS doesn't cover WebSockets: reject handshakes from other sites (cross-site
-    // WebSocket hijacking). Same-origin polling may omit Origin, so missing is allowed.
     allowRequest: (req, callback) => {
       const origin = req.headers.origin
       callback(null, origin === undefined || origin === appOrigin)
@@ -52,7 +60,7 @@ export function createSocketServer(app: FastifyInstance): IoServer {
 
   io.on('connection', socket => {
     const { user } = socket.data
-    void socket.join(`user:${user.id}`)
+    void socket.join(userRoom(user.id))
     app.log.debug({ userId: user.id, socketId: socket.id }, 'socket connected')
 
     socket.on('disconnect', reason => {

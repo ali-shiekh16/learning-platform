@@ -16,6 +16,10 @@ export default defineConfig({
       DATABASE_URL: TEST_DATABASE_URL,
       BETTER_AUTH_SECRET: 'test-secret-test-secret-test-secret-123',
       BETTER_AUTH_URL: 'http://localhost:3000',
+      // Tests replace LiveKit with a fake (see test/helpers.ts); these only satisfy env validation.
+      LIVEKIT_URL: 'wss://livekit.test',
+      LIVEKIT_API_KEY: 'test-key',
+      LIVEKIT_API_SECRET: 'test-secret',
     },
     // Test files share one database; run them one after another to keep data predictable.
     fileParallelism: false,

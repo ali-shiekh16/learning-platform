@@ -15,11 +15,15 @@ model User {
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
-  role          String    @default("STUDENT") // "STUDENT" | "TEACHER
+  role          String    @default("STUDENT") // "STUDENT" | "TEACHER"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+
+  meetingsTaught      Meeting[]
+  meetingParticipants MeetingParticipant[]
+  chatMessages        ChatMessage[]
 
   @@map("users")
 }
@@ -69,4 +73,52 @@ model Verification {
 
   @@index([identifier])
   @@map("verifications")
+}
+
+// ─── Meetings and chat (Module 2) ────────────────
+
+model Meeting {
+  id           String               @id @default(cuid())
+  title        String
+  joinCode     String               @unique
+  status       String               @default("LIVE") // "LIVE" | "ENDED"
+  teacherId    String
+  teacher      User                 @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  createdAt    DateTime             @default(now())
+  endedAt      DateTime?
+  participants MeetingParticipant[]
+  messages     ChatMessage[]
+
+  @@index([status])
+  @@index([teacherId])
+  @@map("meetings")
+}
+
+// Attendance: one row per user per meeting. `removed` blocks rejoining.
+model MeetingParticipant {
+  id        String    @id @default(cuid())
+  meetingId String
+  meeting   Meeting   @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  removed   Boolean   @default(false)
+
+  @@unique([meetingId, userId])
+  @@index([userId])
+  @@map("meeting_participants")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([meetingId, createdAt])
+  @@map("chat_messages")
 }

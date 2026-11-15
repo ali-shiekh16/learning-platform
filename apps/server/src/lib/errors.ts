@@ -35,3 +35,5 @@ export const forbidden = (message = 'You do not have permission to do that') =>
   new AppError('FORBIDDEN', message)
 
 export const notFound = (what = 'Resource') => new AppError('NOT_FOUND', `${what} not found`)
+
+export const conflict = (message: string) => new AppError('CONFLICT', message)
