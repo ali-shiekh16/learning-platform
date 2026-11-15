@@ -1,10 +1,11 @@
-import { Link, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser, useSignOut } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
-import { useSocket, type SocketStatus } from '@/lib/socket'
+import { useSocketStatus } from '@/hooks/use-socket'
+import type { SocketStatus } from '@/lib/socket'
 
 const STATUS_LABEL: Record<SocketStatus, string> = {
   connected: 'Live',
@@ -15,7 +16,7 @@ const STATUS_LABEL: Record<SocketStatus, string> = {
 /** Header + page content for every signed-in page. */
 export function AppShell() {
   const { user } = useCurrentUser()
-  const { status } = useSocket()
+  const status = useSocketStatus()
   const signOut = useSignOut()
   const navigate = useNavigate()
 
@@ -32,6 +33,19 @@ export function AppShell() {
           <Link to="/" className="font-semibold">
             Learning Platform
           </Link>
+          <nav className="flex gap-1 text-sm">
+            <NavLink
+              to="/meetings"
+              className={({ isActive }) =>
+                cn(
+                  'rounded-md px-2 py-1 text-muted-foreground hover:text-foreground',
+                  isActive && 'bg-muted text-foreground',
+                )
+              }
+            >
+              Meetings
+            </NavLink>
+          </nav>
 
           <div className="ml-auto flex items-center gap-3">
             <span

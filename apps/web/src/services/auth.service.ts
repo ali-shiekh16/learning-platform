@@ -26,9 +26,9 @@ function toApiError(
   return new ApiError(error.status, 'INTERNAL_ERROR', messages.fallback)
 }
 
-export async function getCurrentUser(): Promise<PublicUser | null> {
+export async function getCurrentUser(signal?: AbortSignal): Promise<PublicUser | null> {
   try {
-    return publicUserSchema.parse(await http('/api/me'))
+    return publicUserSchema.parse(await http('/api/me', { signal }))
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return null
     throw error

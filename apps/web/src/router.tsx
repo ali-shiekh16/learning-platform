@@ -1,8 +1,9 @@
 import { createBrowserRouter } from 'react-router'
 import { AppShell } from '@/components/app-shell'
-import { FullPageMessage } from '@/components/full-page'
+import { FullPageMessage, FullPageSpinner } from '@/components/full-page'
 import { RequireAuth } from '@/components/require-auth'
 import { DashboardPage } from '@/pages/dashboard-page'
+import { MeetingsPage } from '@/pages/meetings-page'
 import { SignInPage } from '@/pages/sign-in-page'
 import { SignUpPage } from '@/pages/sign-up-page'
 
@@ -14,7 +15,18 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppShell />,
-        children: [{ index: true, element: <DashboardPage /> }],
+        // Shown while a lazy route's code downloads.
+        hydrateFallbackElement: <FullPageSpinner />,
+        children: [
+          { index: true, element: <DashboardPage /> },
+          { path: 'meetings', element: <MeetingsPage /> },
+          {
+            path: 'meetings/:id',
+            // LiveKit is large: load the room's code only when someone opens a meeting.
+            lazy: () =>
+              import('@/pages/meeting-room-page').then(m => ({ Component: m.MeetingRoomPage })),
+          },
+        ],
       },
     ],
   },

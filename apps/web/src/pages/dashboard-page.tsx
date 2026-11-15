@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useCurrentUser } from '@/hooks/use-auth'
@@ -6,8 +7,8 @@ import type { Role } from '@app/shared'
 interface Feature {
   title: string
   description: string
-  /** Module in which the feature is built; shown until then. */
-  available: boolean
+  /** Route of the feature; features without one are not built yet. */
+  to?: string
 }
 
 const FEATURES: Record<Role, Feature[]> = {
@@ -15,35 +16,31 @@ const FEATURES: Record<Role, Feature[]> = {
     {
       title: 'Meetings',
       description: 'Start a live class and share the join code.',
-      available: false,
+      to: '/meetings',
     },
     {
       title: 'Student reports',
       description: 'Sudoku results of students in your classes.',
-      available: false,
     },
     {
       title: 'Text to speech',
       description: 'Read any text aloud with a choice of voices.',
-      available: false,
     },
   ],
   STUDENT: [
     {
       title: 'Join a meeting',
       description: 'Enter a code or pick a live class.',
-      available: false,
+      to: '/meetings',
     },
     {
       title: 'Timed Sudoku',
       description: 'Beat the clock and get a performance report.',
-      available: false,
     },
-    { title: 'My reports', description: 'Your past games and scores.', available: false },
+    { title: 'My reports', description: 'Your past games and scores.' },
     {
       title: 'Text to speech',
       description: 'Read any text aloud with a choice of voices.',
-      available: false,
     },
   ],
 }
@@ -65,17 +62,28 @@ export function DashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES[user.role].map(feature => (
-          <Card key={feature.title} className={feature.available ? '' : 'opacity-60'}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between gap-2">
-                {feature.title}
-                {!feature.available && <Badge variant="outline">Soon</Badge>}
-              </CardTitle>
-              <CardDescription>{feature.description}</CardDescription>
-            </CardHeader>
-          </Card>
-        ))}
+        {FEATURES[user.role].map(feature => {
+          const card = (
+            <Card
+              className={feature.to ? 'h-full transition-colors hover:bg-muted/50' : 'opacity-60'}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  {feature.title}
+                  {!feature.to && <Badge variant="outline">Soon</Badge>}
+                </CardTitle>
+                <CardDescription>{feature.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          )
+          return feature.to ? (
+            <Link key={feature.title} to={feature.to} className="rounded-xl">
+              {card}
+            </Link>
+          ) : (
+            <div key={feature.title}>{card}</div>
+          )
+        })}
       </div>
     </div>
   )

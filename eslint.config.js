@@ -38,6 +38,7 @@ export default tseslint.config(
               group: ['better-auth', 'better-auth/*'],
               message: 'Auth calls belong in @/services.',
             },
+            { group: ['socket.io-client'], message: 'Socket events belong in @/hooks.' },
           ],
         },
       ],
