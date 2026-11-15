@@ -14,7 +14,7 @@ Teacher roles.
 | Module | State |
 |---|---|
 | 1. Foundation: auth, roles, dashboards, real-time connection | ✅ Done |
-| 2. Live meetings + chat | Planned |
+| 2. Live meetings + chat | ✅ Done |
 | 3. Collaborative whiteboard | Planned |
 | 4. Timed Sudoku + reports | Planned |
 | 5. Text-to-speech | Planned |
