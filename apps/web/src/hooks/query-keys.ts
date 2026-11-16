@@ -7,4 +7,10 @@ export const queryKeys = {
   meetingSession: (meetingId: string) => ['meeting-session', meetingId] as const,
   chat: (meetingId: string) => ['meeting-chat', meetingId] as const,
   whiteboard: (meetingId: string) => ['meeting-whiteboard', meetingId] as const,
+  currentGame: ['sudoku-current-game'] as const,
+  game: (gameId: string) => ['sudoku-game', gameId] as const,
+  reports: ['reports'] as const,
+  reportList: (query: { sort: string; studentId?: string | undefined }) =>
+    ['reports', 'list', query] as const,
+  report: (gameId: string) => ['reports', 'detail', gameId] as const,
 }

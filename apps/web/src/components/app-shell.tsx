@@ -7,6 +7,12 @@ import { cn } from '@/lib/utils'
 import { useSocketStatus } from '@/hooks/use-socket'
 import type { SocketStatus } from '@/lib/socket'
 
+const NAV_LINKS = [
+  { to: '/meetings', label: 'Meetings' },
+  { to: '/sudoku', label: 'Sudoku', studentsOnly: true },
+  { to: '/reports', label: 'Reports' },
+]
+
 const STATUS_LABEL: Record<SocketStatus, string> = {
   connected: 'Live',
   connecting: 'Connecting…',
@@ -35,17 +41,20 @@ export function AppShell() {
             Learning Platform
           </Link>
           <nav className="flex gap-1 text-sm">
-            <NavLink
-              to="/meetings"
-              className={({ isActive }) =>
-                cn(
-                  'rounded-md px-2 py-1 text-muted-foreground hover:text-foreground',
-                  isActive && 'bg-muted text-foreground',
-                )
-              }
-            >
-              Meetings
-            </NavLink>
+            {NAV_LINKS.filter(link => !link.studentsOnly || user?.role === 'STUDENT').map(link => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  cn(
+                    'rounded-md px-2 py-1 text-muted-foreground hover:text-foreground',
+                    isActive && 'bg-muted text-foreground',
+                  )
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
           </nav>
 
           <div className="ml-auto flex items-center gap-3">

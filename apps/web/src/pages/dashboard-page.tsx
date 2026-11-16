@@ -21,6 +21,7 @@ const FEATURES: Record<Role, Feature[]> = {
     {
       title: 'Student reports',
       description: 'Sudoku results of students in your classes.',
+      to: '/reports',
     },
     {
       title: 'Text to speech',
@@ -36,8 +37,9 @@ const FEATURES: Record<Role, Feature[]> = {
     {
       title: 'Timed Sudoku',
       description: 'Beat the clock and get a performance report.',
+      to: '/sudoku',
     },
-    { title: 'My reports', description: 'Your past games and scores.' },
+    { title: 'My reports', description: 'Your past games and scores.', to: '/reports' },
     {
       title: 'Text to speech',
       description: 'Read any text aloud with a choice of voices.',
