@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, NavLink, Outlet, useMatch, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,7 @@ export function AppShell() {
   const status = useSocketStatus()
   const signOut = useSignOut()
   const navigate = useNavigate()
+  const inMeetingRoom = useMatch('/meetings/:id') !== null
 
   const handleSignOut = () =>
     signOut.mutate(undefined, {
@@ -76,7 +77,8 @@ export function AppShell() {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl p-4 sm:p-6">
+      {/* The meeting room uses the whole window; other pages keep a readable width. */}
+      <main className={cn('mx-auto p-4 sm:p-6', !inMeetingRoom && 'max-w-6xl')}>
         <Outlet />
       </main>
     </div>

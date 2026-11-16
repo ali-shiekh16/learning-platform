@@ -1,9 +1,9 @@
-import { useCallback, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { LiveKitRoom } from '@livekit/components-react'
 import '@livekit/components-styles'
 import { DisconnectReason } from 'livekit-client'
-import { Copy, LogOut, PhoneOff } from 'lucide-react'
+import { Copy, LogOut, PenLine, PhoneOff, Video } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Meeting, PublicUser } from '@app/shared'
 import { FullPageMessage, FullPageSpinner } from '@/components/full-page'
@@ -14,6 +14,9 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useCurrentUser } from '@/hooks/use-auth'
 import { useEndMeeting, useMeetingRoom, useMeetingSession } from '@/hooks/use-meetings'
+
+// Excalidraw is large: download the board only when someone first opens it.
+const WhiteboardPanel = lazy(() => import('@/components/meeting-room/whiteboard-panel'))
 
 export function MeetingRoomPage() {
   const { id = '' } = useParams()
@@ -41,6 +44,7 @@ function MeetingRoom({
   const endMeeting = useEndMeeting(meeting.id)
   const isOwner = meeting.teacher.id === user.id
   const [tab, setTab] = useState('chat')
+  const [stage, setStage] = useState<'video' | 'board'>('video')
 
   // The socket event and LiveKit's own disconnect can both report the same thing;
   // only act on the first.
@@ -87,6 +91,16 @@ function MeetingRoom({
           <h1 className="truncate text-xl font-semibold">{meeting.title}</h1>
           <p className="text-sm text-muted-foreground">with {meeting.teacher.name}</p>
         </div>
+        <Tabs value={stage} onValueChange={value => setStage(value as 'video' | 'board')}>
+          <TabsList>
+            <TabsTrigger value="video">
+              <Video /> Video
+            </TabsTrigger>
+            <TabsTrigger value="board">
+              <PenLine /> Whiteboard
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         <Button variant="outline" size="sm" onClick={copyCode} aria-label="Copy join code">
           <span className="font-mono tracking-widest">{meeting.joinCode}</span>
           <Copy />
@@ -113,10 +127,19 @@ function MeetingRoom({
         onError={error => toast.error(`Video connection problem: ${error.message}`)}
         onMediaDeviceFailure={() => toast.error('Could not access your camera or microphone.')}
         data-lk-theme="default"
-        className="grid h-[calc(100svh-11rem)] min-h-[480px] gap-3 lg:grid-cols-[1fr_340px]"
+        // `!`: LiveKit's .lk-room-container sets height: 100% and loads after Tailwind.
+        className="grid h-[calc(100svh-11rem)]! min-h-[480px] gap-3 lg:grid-cols-[1fr_340px]"
       >
         <div className="min-h-0 overflow-hidden rounded-lg">
-          <VideoStage />
+          <VideoStage
+            board={
+              stage === 'board' && (
+                <Suspense fallback={<FullPageSpinner />}>
+                  <WhiteboardPanel meetingId={meeting.id} isTeacher={isOwner} />
+                </Suspense>
+              )
+            }
+          />
         </div>
 
         <Tabs

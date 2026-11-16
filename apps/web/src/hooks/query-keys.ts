@@ -6,4 +6,5 @@ export const queryKeys = {
   meetingList: ['meeting-list'] as const,
   meetingSession: (meetingId: string) => ['meeting-session', meetingId] as const,
   chat: (meetingId: string) => ['meeting-chat', meetingId] as const,
+  whiteboard: (meetingId: string) => ['meeting-whiteboard', meetingId] as const,
 }
