@@ -1,5 +1,6 @@
 import type { ChatMessage, SendChatMessageInput } from './chat'
 import type { ErrorCode } from './errors'
+import type { BoardElement, BoardPointerInput, BoardUpdateInput } from './whiteboard'
 
 /**
  * Socket.IO acknowledgement: the server's reply to an event, delivered to the
@@ -19,6 +20,10 @@ export interface ClientToServerEvents {
   'meeting:join': (payload: MeetingRef, ack: Ack) => void
   'meeting:leave': (payload: MeetingRef) => void
   'chat:send': (payload: SendChatMessageInput, ack: Ack<ChatMessage>) => void
+  'board:update': (payload: BoardUpdateInput, ack: Ack) => void
+  'board:pointer': (payload: BoardPointerInput) => void
+  'board:lock': (payload: MeetingRef & { locked: boolean }, ack: Ack) => void
+  'board:clear': (payload: MeetingRef, ack: Ack) => void
 }
 
 /** Events the server sends to browsers. */
@@ -26,4 +31,9 @@ export interface ServerToClientEvents {
   'chat:message': (message: ChatMessage) => void
   'meeting:ended': (payload: MeetingRef) => void
   'participant:removed': (payload: MeetingRef & { userId: string }) => void
+  'board:update': (payload: MeetingRef & { elements: BoardElement[] }) => void
+  'board:pointer': (
+    payload: MeetingRef & { userId: string; name: string; x: number; y: number },
+  ) => void
+  'board:locked': (payload: MeetingRef & { locked: boolean }) => void
 }
