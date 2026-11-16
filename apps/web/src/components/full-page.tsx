@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 
@@ -13,14 +14,25 @@ export function FullPageSpinner() {
   )
 }
 
-export function FullPageMessage({ title, description }: { title: string; description: string }) {
+export function FullPageMessage({
+  title,
+  description,
+  action,
+}: {
+  title: string
+  description: string
+  /** Replaces the default "Back to dashboard" link. */
+  action?: ReactNode
+}) {
   return (
     <div className="flex min-h-[50svh] flex-col items-center justify-center gap-3 p-6 text-center">
       <h1 className="text-2xl font-semibold">{title}</h1>
       <p className="max-w-md text-muted-foreground">{description}</p>
-      <Button asChild variant="outline">
-        <Link to="/">Back to dashboard</Link>
-      </Button>
+      {action ?? (
+        <Button asChild variant="outline">
+          <Link to="/">Back to dashboard</Link>
+        </Button>
+      )}
     </div>
   )
 }
