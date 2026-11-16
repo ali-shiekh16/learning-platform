@@ -1,7 +1,6 @@
 import type { AddressInfo } from 'node:net'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { io as connect, type Socket } from 'socket.io-client'
-import type { ChatHistory, ClientToServerEvents, Meeting, ServerToClientEvents } from '@app/shared'
+import type { ChatHistory, Meeting } from '@app/shared'
 import { buildApp, type App } from '../src/app'
 import { prisma } from '../src/db/prisma'
 import { CHAT_RATE_LIMIT } from '../src/modules/chat/chat.service'
@@ -13,8 +12,7 @@ import {
   signUp,
   type TestUser,
 } from './helpers'
-
-type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>
+import { createSocketClients, nextEvent, noEvent } from './socket-helpers'
 
 let app: App
 let url: string
@@ -22,7 +20,9 @@ let teacher: TestUser
 let student: TestUser
 let otherStudent: TestUser
 let meeting: Meeting
-const openSockets: ClientSocket[] = []
+const sockets = createSocketClients(() => url)
+const { connectAs } = sockets
+const enterMeeting = (user: TestUser) => sockets.enterMeeting(user, meeting.id)
 
 beforeAll(async () => {
   app = await buildApp({}, { livekit: createFakeLiveKit().gateway })
@@ -46,55 +46,7 @@ beforeEach(async () => {
   await joinMeeting(app, student, meeting.id)
 })
 
-afterEach(() => {
-  for (const socket of openSockets.splice(0)) socket.close()
-})
-
-async function connectAs(user: TestUser): Promise<ClientSocket> {
-  const socket: ClientSocket = connect(url, {
-    path: '/socket.io',
-    transports: ['websocket'],
-    reconnection: false,
-    extraHeaders: { cookie: user.cookie },
-  })
-  openSockets.push(socket)
-  await new Promise<void>((resolve, reject) => {
-    socket.on('connect', resolve)
-    socket.on('connect_error', reject)
-  })
-  return socket
-}
-
-/** Connect and enter the meeting's room, as the meeting page does. */
-async function enterMeeting(user: TestUser) {
-  const socket = await connectAs(user)
-  const result = await socket.emitWithAck('meeting:join', { meetingId: meeting.id })
-  expect(result).toEqual({ ok: true, data: null })
-  return socket
-}
-
-/** Resolves with the next payload of `event`, or fails after `ms`. */
-function nextEvent<E extends keyof ServerToClientEvents>(
-  socket: ClientSocket,
-  event: E,
-  ms = 2000,
-) {
-  return new Promise<Parameters<ServerToClientEvents[E]>[0]>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`no ${event} within ${ms}ms`)), ms)
-    socket.once(event, ((payload: Parameters<ServerToClientEvents[E]>[0]) => {
-      clearTimeout(timer)
-      resolve(payload)
-    }) as never)
-  })
-}
-
-/** Resolves true if `event` does NOT arrive within `ms`. */
-function noEvent(socket: ClientSocket, event: keyof ServerToClientEvents, ms = 300) {
-  return nextEvent(socket, event, ms).then(
-    () => false,
-    () => true,
-  )
-}
+afterEach(() => sockets.closeAll())
 
 describe('entering a meeting room', () => {
   it('refuses people who have not joined the meeting', async () => {

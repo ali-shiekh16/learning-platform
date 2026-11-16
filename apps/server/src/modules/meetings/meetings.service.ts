@@ -118,6 +118,8 @@ export function createMeetingsService({ prisma, livekit, notifier, log }: Deps) 
   return {
     assertCanView,
     assertActiveParticipant,
+    /** The meeting, if `user` is the teacher who started it (403 otherwise). */
+    assertOwner: findOwnedMeeting,
 
     /** Everyone sees live meetings; teachers also see their own past ones. */
     async list(user: PublicUser): Promise<Meeting[]> {

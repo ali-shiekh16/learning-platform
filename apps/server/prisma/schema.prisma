@@ -75,7 +75,6 @@ model Verification {
   @@map("verifications")
 }
 
-// ─── Meetings and chat (Module 2) ────────────────
 
 model Meeting {
   id           String               @id @default(cuid())
@@ -88,6 +87,7 @@ model Meeting {
   endedAt      DateTime?
   participants MeetingParticipant[]
   messages     ChatMessage[]
+  whiteboard   Whiteboard?
 
   @@index([status])
   @@index([teacherId])
@@ -121,4 +121,16 @@ model ChatMessage {
 
   @@index([meetingId, createdAt])
   @@map("chat_messages")
+}
+
+
+// One board per meeting.
+model Whiteboard {
+  meetingId String   @id
+  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  elements  Json     @default("[]")
+  locked    Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@map("whiteboards")
 }

@@ -18,6 +18,13 @@ import { registerChatSocketHandlers } from './modules/chat/chat.socket'
 import { meetingRoutes } from './modules/meetings/meetings.routes'
 import { createMeetingsService } from './modules/meetings/meetings.service'
 import { registerMeetingSocketHandlers } from './modules/meetings/meetings.socket'
+import { whiteboardRoutes } from './modules/whiteboard/whiteboard.routes'
+import { createWhiteboardService } from './modules/whiteboard/whiteboard.service'
+import {
+  BOARD_RATE_LIMIT,
+  registerWhiteboardSocketHandlers,
+} from './modules/whiteboard/whiteboard.socket'
+import { createSlidingWindowLimiter } from './lib/sliding-window-limiter'
 import { errorHandler } from './plugins/error-handler'
 import { createRealtimeNotifier } from './realtime/notifier'
 import { createSocketServer } from './realtime/socket'
@@ -77,17 +84,24 @@ export async function buildApp(options: FastifyServerOptions = {}, config: AppCo
     log: app.log,
   })
   const chat = createChatService({ prisma, meetings })
+  const whiteboard = createWhiteboardService({ prisma, meetings, log: app.log })
+  const boardLimiter = createSlidingWindowLimiter(BOARD_RATE_LIMIT)
 
   io.on('connection', socket => {
     registerMeetingSocketHandlers(io, socket, { meetings, log: app.log })
     registerChatSocketHandlers(socket, { chat, log: app.log })
+    registerWhiteboardSocketHandlers(socket, { whiteboard, limiter: boardLimiter, log: app.log })
   })
+
+  // Save every unsaved board before the process exits.
+  app.addHook('onClose', () => whiteboard.close())
 
   app.get('/api/health', { schema: { hide: true }, config: { rateLimit: false } }, async () => ({
     status: 'ok',
   }))
   await app.register(authRoutes)
   await app.register(meetingRoutes, { meetings, chat })
+  await app.register(whiteboardRoutes, { whiteboard })
 
   return app
 }

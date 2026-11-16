@@ -26,3 +26,5 @@ export function createSlidingWindowLimiter({
     },
   }
 }
+
+export type SlidingWindowLimiter = ReturnType<typeof createSlidingWindowLimiter>
