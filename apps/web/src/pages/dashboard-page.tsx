@@ -26,6 +26,7 @@ const FEATURES: Record<Role, Feature[]> = {
     {
       title: 'Text to speech',
       description: 'Read any text aloud with a choice of voices.',
+      to: '/tools/tts',
     },
   ],
   STUDENT: [
@@ -43,6 +44,7 @@ const FEATURES: Record<Role, Feature[]> = {
     {
       title: 'Text to speech',
       description: 'Read any text aloud with a choice of voices.',
+      to: '/tools/tts',
     },
   ],
 }

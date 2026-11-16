@@ -9,6 +9,7 @@ import type { Meeting, PublicUser } from '@app/shared'
 import { FullPageMessage, FullPageSpinner } from '@/components/full-page'
 import { ChatPanel } from '@/components/meeting-room/chat-panel'
 import { ParticipantsPanel } from '@/components/meeting-room/participants-panel'
+import { TtsPanel } from '@/components/tts/tts-panel'
 import { VideoStage } from '@/components/meeting-room/video-stage'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -147,9 +148,10 @@ function MeetingRoom({
           onValueChange={setTab}
           className="flex min-h-0 flex-col overflow-hidden rounded-lg border bg-background text-foreground"
         >
-          <TabsList className="m-2 grid grid-cols-2">
+          <TabsList className="m-2 grid grid-cols-3">
             <TabsTrigger value="chat">Chat</TabsTrigger>
             <TabsTrigger value="participants">Participants</TabsTrigger>
+            <TabsTrigger value="tts">TTS</TabsTrigger>
           </TabsList>
           {/* forceMount keeps the chat mounted (and its socket listener alive) on the other tab. */}
           <TabsContent
@@ -161,6 +163,14 @@ function MeetingRoom({
           </TabsContent>
           <TabsContent value="participants" className="min-h-0 flex-1 overflow-y-auto p-2">
             <ParticipantsPanel meetingId={meeting.id} canModerate={isOwner} />
+          </TabsContent>
+          {/* Also kept mounted, so switching tabs doesn't cut off text being read aloud. */}
+          <TabsContent
+            value="tts"
+            forceMount
+            className="min-h-0 flex-1 overflow-y-auto p-3 data-[state=inactive]:hidden"
+          >
+            <TtsPanel compact />
           </TabsContent>
         </Tabs>
       </LiveKitRoom>

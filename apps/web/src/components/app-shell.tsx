@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { to: '/meetings', label: 'Meetings' },
   { to: '/sudoku', label: 'Sudoku', studentsOnly: true },
   { to: '/reports', label: 'Reports' },
+  { to: '/tools/tts', label: 'Text to speech' },
 ]
 
 const STATUS_LABEL: Record<SocketStatus, string> = {

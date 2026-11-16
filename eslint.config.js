@@ -39,6 +39,11 @@ export default tseslint.config(
               message: 'Auth calls belong in @/services.',
             },
             { group: ['socket.io-client'], message: 'Socket events belong in @/hooks.' },
+            {
+              group: ['@/lib/speech/*'],
+              message: 'Use the useSpeech hook from @/hooks.',
+              allowTypeImports: true,
+            },
           ],
         },
       ],

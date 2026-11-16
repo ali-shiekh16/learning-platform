@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
-import { SendHorizontal } from 'lucide-react'
+import { SendHorizontal, Square, Volume2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CHAT_MESSAGE_MAX_LENGTH, type ChatMessage } from '@app/shared'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useChat } from '@/hooks/use-chat'
+import { useSpeech } from '@/hooks/use-speech'
 import { cn } from '@/lib/utils'
 
 const time = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' })
@@ -18,6 +19,15 @@ export function ChatPanel({
   currentUserId: string
 }) {
   const chat = useChat(meetingId)
+  // One voice for the whole chat: starting a message stops the one playing.
+  const speech = useSpeech()
+  const [playingId, setPlayingId] = useState<string | null>(null)
+  const playing = speech.state === 'idle' ? null : playingId
+  const toggleSpeech = (message: ChatMessage) => {
+    if (playing === message.id) return speech.stop()
+    setPlayingId(message.id)
+    speech.speak(message.body)
+  }
   const [draft, setDraft] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
   const stickToBottom = useRef(true)
@@ -79,6 +89,8 @@ export function ChatPanel({
             key={message.id}
             message={message}
             own={message.sender.id === currentUserId}
+            playing={playing === message.id}
+            onSpeak={speech.supported ? () => toggleSpeech(message) : undefined}
           />
         ))}
       </div>
@@ -114,7 +126,17 @@ export function ChatPanel({
   )
 }
 
-function MessageItem({ message, own }: { message: ChatMessage; own: boolean }) {
+function MessageItem({
+  message,
+  own,
+  playing,
+  onSpeak,
+}: {
+  message: ChatMessage
+  own: boolean
+  playing: boolean
+  onSpeak: (() => void) | undefined
+}) {
   return (
     <div className={cn('flex flex-col gap-0.5', own && 'items-end')}>
       <div className="flex items-baseline gap-2 text-xs text-muted-foreground">
@@ -125,6 +147,20 @@ function MessageItem({ message, own }: { message: ChatMessage; own: boolean }) {
           </Badge>
         )}
         <time dateTime={message.createdAt}>{time.format(new Date(message.createdAt))}</time>
+        {onSpeak && (
+          <button
+            type="button"
+            onClick={onSpeak}
+            aria-label={playing ? 'Stop reading' : 'Read message aloud'}
+            title={playing ? 'Stop reading' : 'Read aloud'}
+            className={cn(
+              'rounded p-0.5 hover:bg-muted hover:text-foreground',
+              playing && 'text-primary',
+            )}
+          >
+            {playing ? <Square className="size-3.5" /> : <Volume2 className="size-3.5" />}
+          </button>
+        )}
       </div>
       <p
         className={cn(
