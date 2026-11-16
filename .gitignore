@@ -27,5 +27,3 @@ Thumbs.db
 # Assessment brief (private, not part of the deliverable)
 *.pdf
 
-# Local tooling
-.claude/

@@ -1,5 +1,5 @@
 {
-  "name": "connector-learning-platform",
+  "name": "learning-platform",
   "private": true,
   "type": "module",
   "workspaces": [

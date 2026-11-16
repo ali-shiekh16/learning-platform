@@ -27,7 +27,7 @@ before the final submission.
 
 ## From the Module 3 plan
 
-6. **Images on the whiteboard** ⚠️ *Remind the user at the end of the project.* — the
+6. **Images on the whiteboard** — the
    Excalidraw image tool is disabled because image files need their own upload, storage and
    sync (elements only reference a file id). Needs: an upload endpoint, file storage, and
    sending `files` alongside elements.
@@ -66,6 +66,11 @@ before the final submission.
 
 13. **Sudoku pencil notes** — small candidate numbers in a cell. A UI-only feature (notes
     never go to the server), deliberately left out of the first version.
+
+14. **Natural cloud voices (e.g. Cartesia)** — a second engine behind the TTS engine
+    interface (ADR 009): a server endpoint that holds the API key and streams audio, per-user
+    quotas and rate limits (billed per character), a "Natural voices" group in the voice
+    dropdown, and a fallback to browser voices when the service fails.
 
 ## From the Module 1 review
 

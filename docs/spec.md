@@ -126,13 +126,15 @@ Error shape for all failures: `{ "error": { "code": string, "message": string, "
 | POST | `/api/meetings` | teacher | Create meeting + LiveKit room |
 | GET | `/api/meetings/:id` | participant | Meeting details |
 | POST | `/api/meetings/join` | auth | Join by code; records attendance |
+| POST | `/api/meetings/:id/join` | auth, not removed | Enter a live meeting by id (the room page); records attendance |
 | POST | `/api/meetings/:id/token` | participant, not removed | Short-lived LiveKit access token |
 | POST | `/api/meetings/:id/end` | owner teacher | End meeting, delete LiveKit room |
 | POST | `/api/meetings/:id/participants/:userId/mute` | owner teacher | Mute participant's microphone |
 | POST | `/api/meetings/:id/participants/:userId/remove` | owner teacher | Remove participant |
 | GET | `/api/meetings/:id/messages` | participant | Chat history (cursor paginated) |
 | GET | `/api/meetings/:id/whiteboard` | participant | Saved board |
-| POST | `/api/sudoku/games` | student | Start game; returns puzzle, never the solution |
+| GET | `/api/sudoku/games/current` | student | The game in progress, or null (for "Resume") |
+| POST | `/api/sudoku/games` | student | Start game (ends one still open); returns puzzle, never the solution |
 | GET | `/api/sudoku/games/:id` | owner | Resume game (board, time remaining) |
 | POST | `/api/sudoku/games/:id/moves` | owner | Place a value; server returns correct/incorrect |
 | POST | `/api/sudoku/games/:id/finish` | owner | Finish (time up or quit) |
@@ -145,21 +147,21 @@ API documentation is generated from the Zod route schemas as an OpenAPI page at 
 
 ## 6. Socket events
 
-The socket handshake carries the session cookie; the server validates it with `auth.api.getSession()` and rejects the connection otherwise. Every event handler checks that the user is a current, non-removed participant of the meeting.
+The socket handshake carries the session cookie; the server validates it with `auth.api.getSession()` and rejects the connection otherwise. `meeting:join` checks in the database that the user is a current, non-removed participant; only then does the socket enter the meeting's room. Chat checks the database on every message; the frequent board events instead require membership of that room, which removal and the meeting ending revoke (sockets are taken out of it).
 
 | Direction | Event | Payload |
 |---|---|---|
 | C → S | `meeting:join` / `meeting:leave` | `{ meetingId }` |
 | S → C | `meeting:ended` | `{ meetingId }` |
-| S → C | `participant:removed` | `{ userId }` |
+| S → C | `participant:removed` | `{ meetingId, userId }` — sent to the removed user's own room |
 | C → S | `chat:send` (with ack) | `{ meetingId, body }` |
-| S → room | `chat:message` | `{ id, user: { id, name, role }, body, createdAt }` |
+| S → room | `chat:message` | `{ id, meetingId, body, createdAt, sender: { id, name, role } }` — to everyone except the sender, who gets it in the ack |
 | C → S | `board:update` | `{ meetingId, elements[] }` — changed elements only |
-| S → room | `board:update` | `{ elements[], from }` |
+| S → room | `board:update` | `{ meetingId, elements[] }` — only elements that changed the server's copy |
 | C → S | `board:pointer` | `{ meetingId, x, y }` — throttled |
 | S → room | `board:pointer` | `{ userId, name, x, y }` |
 | teacher C → S | `board:lock` / `board:clear` | `{ meetingId, locked? }` / `{ meetingId }` |
-| S → room | `board:locked` / `board:cleared` | `{ locked }` / `{}` |
+| S → room | `board:locked` | `{ meetingId, locked }` — clearing is sent as `board:update` with every element deleted |
 
 Event names and payload types live in `packages/shared` and are used to type both the server and the client Socket.IO instances.
 
@@ -178,15 +180,15 @@ Event names and payload types live in `packages/shared` and are used to type bot
 ### B. Live meeting
 - Teacher creates a meeting with a title → `meeting` row, 6-character join code, LiveKit room.
 - Students join from the list of live meetings or by entering the code.
-- Room layout: video grid; sidebar tabs **Participants · Chat · Whiteboard · TTS**; control bar with mic, camera, leave, and (teacher) end meeting.
+- Room layout: the main area switches between **Video** (grid of everyone) and **Whiteboard** (the board, with everyone's video in a strip beside it); sidebar tabs **Chat · Participants · TTS**; control bar with mic, camera and screen share; header with join code, leave and (teacher) end meeting. The room uses the full window width.
 - Participant list: name, role badge, mic/camera state, join time; teacher sees mute and remove actions.
-- **Removal is enforced in three places:** LiveKit `removeParticipant` disconnects the user; `meeting_participant.removed = true` makes the token endpoint refuse new tokens; tokens are short-lived (~5 min, only checked at connect) so an old token cannot be reused for long. The client also reacts to `participant:removed` by leaving and returning to the dashboard.
+- **Removal is enforced in three places:** LiveKit `removeParticipant` disconnects the user; `meeting_participant.removed = true` makes the token endpoint refuse new tokens; tokens are short-lived (10 min, only checked at connect) so an old token cannot be reused for long. The client also reacts to `participant:removed` by leaving and returning to the meetings list.
 - LiveKit token grants: teacher → `roomAdmin`, `canPublish`, `canSubscribe`; student → `canPublish`, `canSubscribe`.
 
 ### C. Chat
 - Sent over the socket; server validates (1–1000 chars, trimmed), persists, and broadcasts with a **server timestamp**.
 - On join, history is loaded over REST, then live messages stream in.
-- Rate limit: 5 messages per 3 seconds per user.
+- Rate limit: 15 messages per 3 seconds per user (raised from 5 during testing; one shared constant, `CHAT_RATE_LIMIT`).
 - Each message has a 🔊 button that reads it aloud (TTS integration).
 
 ### D. Timed Sudoku
@@ -223,21 +225,23 @@ score     = max(0, round((base + timeBonus) × difficultyMultiplier))
 - Students see their own report history. Teachers see a table of students who attended any of their meetings, filterable by student and sortable by score/date, linking to each full report.
 
 ### F. Collaborative whiteboard (Excalidraw)
-- One board per meeting, in the meeting sidebar with a full-screen option.
+- One board per meeting, shown in the room's main area (Video | Whiteboard switch) so it has room to draw, with participants' video beside it. **Boards start locked**: students watch until the teacher unlocks.
 - **Outbound:** only elements whose `version` increased since the last send, batched every ~75 ms.
 - **Inbound:** merge by element id — higher `version` wins; `versionNonce` breaks ties. Remote changes are applied without entering the local undo history (`captureUpdate` / `commitToHistory` option), so undo only affects the user's own actions.
 - **Deletes:** synced as `isDeleted: true` tombstones.
-- **Persistence:** the server merges updates into an in-memory copy per board and writes to Postgres every ~2 s while dirty, and when the room empties. Late joiners load the saved board, then receive live updates.
+- **Persistence:** the server merges updates into an in-memory copy per board and writes to Postgres every ~2 s while dirty (one save at a time) and on shutdown; boards unused for 10 minutes are dropped from memory after saving. Late joiners load the saved board, then receive live updates.
 - **Teacher controls:** lock (students switch to view mode; server rejects their updates) and clear (all elements marked deleted and broadcast).
 - **Live cursors:** participant pointers and names via Excalidraw's `collaborators`.
-- Excalidraw is lazy-loaded when the whiteboard tab opens.
+- Excalidraw is lazy-loaded the first time someone opens the whiteboard. The image tool is disabled (images need upload and storage; see `docs/improvements.md`).
 
 ### G. Text-to-speech
 - In the meeting sidebar and at `/tools/tts`.
 - Text area (5000-character limit), voice dropdown populated from `speechSynthesis.getVoices()` (loads asynchronously — listen for `voiceschanged`), rate and pitch sliders.
+- **Voice selection where supported** (brief): the dropdown lists the voices the browser offers, grouped by language, with the system default marked and online voices labelled (`localService`). It preselects a voice matching the browser language and remembers the user's choice (`localStorage`). While voices are loading it says so; if the browser offers none, the dropdown is disabled with an explanation and the browser's default voice is used.
 - Play, Pause, Resume, Stop; current-word highlighting where `boundary` events are supported.
 - Text is split into sentences before speaking — Chrome cuts off long single utterances after ~15 s.
 - Clear message if the browser has no speech synthesis support.
+- The UI talks to a small **speech engine interface**; the browser's Web Speech API is the only engine for now, so a cloud voice provider could be added later without changing the UI ([ADR 009](adr/009-tts-browser-engine.md)).
 
 ---
 
@@ -258,7 +262,9 @@ score     = max(0, round((base + timeBonus) × difficultyMultiplier))
 | Score formula | Formula in §7D |
 | Behaviour when time runs out | Game ends as `TIMED_OUT`; report generated |
 | Counting wrong answers | One count, **mistakes**: every wrong value placed (as in the brief, which lists correct entries and mistakes). 5 mistakes ends the game as `FAILED`. Correct cells lock in, so each cell scores at most once |
-| Which teachers see which reports | Teachers see students who attended any of their meetings |
+| Which teachers see which reports | Teachers see all games of students who attended any of their meetings |
+| Several games at once | At most one game in progress per student (a partial unique index); starting a new one ends the open one as `ABANDONED` |
+| Changing an answer | Correct cells lock in (each cell scores once); wrong entries can be changed or cleared, and clearing is not a mistake |
 | Role assignment | Teachers are seeded; self-registration creates students only |
 | Whiteboards per meeting | One, persisted after the meeting ends |
 
