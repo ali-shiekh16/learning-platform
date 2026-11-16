@@ -62,6 +62,11 @@ before the final submission.
     unconfirmed and only go out with the user's next stroke. Retry the send after
     `meeting:join` succeeds (e.g. a short retry on "Join the meeting first").
 
+## From the Module 4 plan
+
+13. **Sudoku pencil notes** — small candidate numbers in a cell. A UI-only feature (notes
+    never go to the server), deliberately left out of the first version.
+
 ## From the Module 1 review
 
 4. **Explicit database pool settings** — `apps/server/src/db/prisma.ts` relies on

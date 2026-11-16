@@ -101,7 +101,7 @@ sudoku_game          id, userId → user, difficulty ("EASY" | "MEDIUM" | "HARD"
                      puzzle char(81), solution char(81), board char(81),
                      timeLimitS, startedAt, endedAt,
                      status ("IN_PROGRESS" | "COMPLETED" | "TIMED_OUT" | "FAILED" | "ABANDONED"),
-                     correctCount, incorrectCount, score
+                     correctCount, mistakes, score
 
 sudoku_move          id, gameId → sudoku_game, row, col, value, isCorrect, createdAt
 ```
@@ -219,7 +219,7 @@ score     = max(0, round((base + timeBonus) × difficultyMultiplier))
 
 ### E. Performance report
 - Generated automatically when a game ends, for any end state, and shown immediately.
-- Contents: status, difficulty, total time, correct entries, incorrect entries, mistakes, final score, accuracy %, final grid with wrong cells marked.
+- Contents: status, difficulty, total time, correct entries, mistakes, final score, accuracy % (correct entries ÷ all values placed), final grid with wrong cells marked.
 - Students see their own report history. Teachers see a table of students who attended any of their meetings, filterable by student and sortable by score/date, linking to each full report.
 
 ### F. Collaborative whiteboard (Excalidraw)
@@ -257,7 +257,7 @@ score     = max(0, round((base + timeBonus) × difficultyMultiplier))
 |---|---|
 | Score formula | Formula in §7D |
 | Behaviour when time runs out | Game ends as `TIMED_OUT`; report generated |
-| "Mistakes" vs "incorrect entries" | Both counted and shown; each wrong value placed is a mistake; 5 mistakes ends the game as `FAILED` |
+| Counting wrong answers | One count, **mistakes**: every wrong value placed (as in the brief, which lists correct entries and mistakes). 5 mistakes ends the game as `FAILED`. Correct cells lock in, so each cell scores at most once |
 | Which teachers see which reports | Teachers see students who attended any of their meetings |
 | Role assignment | Teachers are seeded; self-registration creates students only |
 | Whiteboards per meeting | One, persisted after the meeting ends |

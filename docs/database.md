@@ -25,6 +25,8 @@ erDiagram
   meetings ||--o{ chat_messages : "has"
   users ||--o{ chat_messages : "sends"
   meetings ||--o| whiteboards : "has"
+  users ||--o{ sudoku_games : "plays"
+  sudoku_games ||--o{ sudoku_moves : "has"
 
   users {
     text id PK
@@ -86,6 +88,30 @@ erDiagram
     boolean locked "starts true"
     timestamp updatedAt
   }
+  sudoku_games {
+    text id PK
+    text userId FK
+    text difficulty "EASY | MEDIUM | HARD"
+    char81 puzzle
+    char81 solution "never sent to the browser"
+    char81 board
+    int timeLimitS
+    text status
+    int correctCount
+    int mistakes
+    int score "set when the game ends"
+    timestamp startedAt
+    timestamp endedAt
+  }
+  sudoku_moves {
+    text id PK
+    text gameId FK
+    int row
+    int col
+    int value "1-9, 0 = clear"
+    boolean isCorrect
+    timestamp createdAt
+  }
 ```
 
 ## Tables
@@ -125,3 +151,18 @@ Indexes: `meetings(status)` for the live-meetings list, `meetings(teacherId)` fo
 
 **Trade-off:** a server crash loses at most the last ~2 seconds of drawing. Boards in memory are per process, so several API servers would need a shared store (e.g. Redis) or one owner per meeting.
 
+
+### Sudoku and reports (Module 4)
+
+| Table | Purpose |
+|---|---|
+| `sudoku_games` | One timed game. Grids are 81-character strings, row by row, `0` for empty. `solution` stays on the server; every move is checked against it there. When the game ends, `status`, `endedAt` and `score` are written once. **A finished game is its report**: a separate reports table would only copy these columns. |
+| `sudoku_moves` | Every value placed, in order, with whether it was correct: the audit trail, and enough to replay a game. A `value` of 0 is clearing a wrong entry. |
+
+Indexes: `sudoku_games(userId, endedAt)` for "my reports, newest first" and the teacher's table, and `sudoku_moves(gameId, createdAt)` for replaying a game in order.
+
+**At most one game in progress per user**, enforced by a *partial* unique index: `UNIQUE (userId) WHERE status = 'IN_PROGRESS'`. Finished games don't count, so a user can have any number of those. Prisma's schema language can't express a partial index, so it is written by hand at the end of the migration's SQL (Prisma ignores it rather than treating it as drift). Two "start game" requests at the same moment cannot both succeed.
+
+**Concurrent moves.** Each move locks its game row (`SELECT … FOR UPDATE`) inside a transaction, so two quick moves on the same game run one after the other and the second sees the first one's counts. Otherwise both could read "4 mistakes" and both write 5.
+
+**Time.** The deadline is `startedAt + timeLimitS`, decided by the server. A game whose time ran out is finalized as `TIMED_OUT` (ending at its deadline) the next time anything touches it, including a teacher opening the reports list, so games left open in a closed tab still appear in reports.
