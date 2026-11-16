@@ -24,6 +24,7 @@ erDiagram
   meetings ||--o{ meeting_participants : "has"
   meetings ||--o{ chat_messages : "has"
   users ||--o{ chat_messages : "sends"
+  meetings ||--o| whiteboards : "has"
 
   users {
     text id PK
@@ -79,6 +80,12 @@ erDiagram
     text body "1-1000 chars"
     timestamp createdAt
   }
+  whiteboards {
+    text meetingId PK, FK
+    jsonb elements "Excalidraw elements, incl. deleted"
+    boolean locked "starts true"
+    timestamp updatedAt
+  }
 ```
 
 ## Tables
@@ -107,3 +114,14 @@ Indexes: unique `users.email`, unique `sessions.token`, and `userId` on `session
 Indexes: `meetings(status)` for the live-meetings list, `meetings(teacherId)` for a teacher's past meetings, `meeting_participants(userId)`, and `chat_messages(meetingId, createdAt)`, which serves the paged history query (newest first, cursor by message id).
 
 **Not stored:** who is connected to the video call right now, and their microphone/camera state. LiveKit already tracks that in real time; copying it would create a second source of truth that could disagree.
+
+### Whiteboard (Module 3)
+
+| Table | Purpose |
+|---|---|
+| `whiteboards` | One board per meeting, keyed by `meetingId`. `elements` is a JSON array of Excalidraw elements. Deleted shapes are kept with `isDeleted: true` (tombstones), so an older copy held by another browser can never bring them back. `locked` starts `true`: students can only watch until the teacher unlocks the board. |
+
+**Why one JSON column instead of a row per shape?** The board is always read and written as a whole: loaded once when it is first opened, then kept in the server's memory while in use and saved in the background (every ~2 s if it changed, and on shutdown). Nothing ever queries individual shapes, and a row per shape would turn every save into hundreds of upserts. The merge rule (higher `version` wins, ties broken by the lower `versionNonce`) runs in memory, not in SQL.
+
+**Trade-off:** a server crash loses at most the last ~2 seconds of drawing. Boards in memory are per process, so several API servers would need a shared store (e.g. Redis) or one owner per meeting.
+

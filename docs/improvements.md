@@ -25,6 +25,43 @@ before the final submission.
    `realtime/notifier.ts`) differ only by `-` vs `:`. Rename the LiveKit one (e.g.
    `livekit-meeting-<id>`) so the two systems can't be confused.
 
+## From the Module 3 plan
+
+6. **Images on the whiteboard** ⚠️ *Remind the user at the end of the project.* — the
+   Excalidraw image tool is disabled because image files need their own upload, storage and
+   sync (elements only reference a file id). Needs: an upload endpoint, file storage, and
+   sending `files` alongside elements.
+
+7. **View the whiteboard of a past meeting** — boards are saved after a meeting ends, but
+   there is no UI to open them. Would need a read-only board view from "Past meetings"
+   (the API can reuse `assertCanView`).
+
+8. **Smaller freehand updates** — a pen stroke is one element whose point list grows while
+   drawing, and the whole element is resent every ~75 ms. Long strokes can reach tens of KB
+   per update; sending only the new points (or throttling harder while drawing) would fix it.
+
+9. **Boards across several servers** — live boards are kept in one process's memory. With
+   more than one API server, add the Socket.IO Redis adapter and give each board a single
+   owner (or move board state to Redis). Same limit as the chat rate limiter.
+
+10. **Whiteboard batches by size, not just count** — `use-whiteboard.ts` splits changes into
+    batches of 1000 elements, but Socket.IO rejects messages over 1 MB (`maxHttpBufferSize`)
+    and drops the connection. Freehand strokes are several KB each, so pasting a large
+    sketch could exceed it, disconnect, and repeat after reconnecting. Split batches by
+    serialized size (e.g. ≤500 KB) as well, and add a test.
+
+11. **Drop a student's strokes refused by the lock** — if the teacher locks the board while
+    a student's changes are in flight, the server refuses them (`FORBIDDEN`) but the browser
+    keeps them as unconfirmed and retries on every later change. The student then sees shapes
+    nobody else has. On `FORBIDDEN`, reload the board from the server (discarding local
+    unsent changes).
+
+12. **Send offline board changes after rejoining the room** — on reconnect, `useWhiteboard`
+    sends unsaved changes straight away, but the socket may not be back in the meeting room
+    yet (`useMeetingRoom` rejoins on `connect`). The server then refuses them; they stay
+    unconfirmed and only go out with the user's next stroke. Retry the send after
+    `meeting:join` succeeds (e.g. a short retry on "Join the meeting first").
+
 ## From the Module 1 review
 
 4. **Explicit database pool settings** — `apps/server/src/db/prisma.ts` relies on
