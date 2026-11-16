@@ -11,6 +11,7 @@ import {
 } from '@app/shared'
 import type { prisma as prismaClient } from '../../db/prisma'
 import { roomNameFor, type LiveKitGateway } from '../../integrations/livekit'
+import { isUniqueViolation } from '../../lib/db-errors'
 import { conflict, forbidden, notFound } from '../../lib/errors'
 import type { RealtimeNotifier } from '../../realtime/notifier'
 
@@ -51,9 +52,6 @@ function generateJoinCode(): string {
     code += JOIN_CODE_ALPHABET[randomInt(JOIN_CODE_ALPHABET.length)]
   return code
 }
-
-const isUniqueViolation = (error: unknown) =>
-  typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002'
 
 const isLiveKitNotFound = (error: unknown) =>
   typeof error === 'object' &&

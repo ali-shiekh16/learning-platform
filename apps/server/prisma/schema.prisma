@@ -24,6 +24,7 @@ model User {
   meetingsTaught      Meeting[]
   meetingParticipants MeetingParticipant[]
   chatMessages        ChatMessage[]
+  sudokuGames         SudokuGame[]
 
   @@map("users")
 }
@@ -75,7 +76,6 @@ model Verification {
   @@map("verifications")
 }
 
-
 model Meeting {
   id           String               @id @default(cuid())
   title        String
@@ -123,7 +123,6 @@ model ChatMessage {
   @@map("chat_messages")
 }
 
-
 // One board per meeting.
 model Whiteboard {
   meetingId String   @id
@@ -133,4 +132,47 @@ model Whiteboard {
   updatedAt DateTime @updatedAt
 
   @@map("whiteboards")
+}
+
+// ─── Sudoku (Module 4) ────────────────────
+
+// One timed game. A finished game is also its report: the counts and score are written
+// once when it ends, so a separate reports table would only duplicate them.
+// Grids are 81 characters, row by row, "0" for empty. `solution` never leaves the server.
+// At most one IN_PROGRESS game per user: a partial unique index added in the migration SQL
+// (Prisma's schema language can't express partial indexes).
+model SudokuGame {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  difficulty   String // "EASY" | "MEDIUM" | "HARD"
+  puzzle       String       @db.Char(81)
+  solution     String       @db.Char(81)
+  board        String       @db.Char(81)
+  timeLimitS   Int
+  status       String       @default("IN_PROGRESS") // "IN_PROGRESS" | "COMPLETED" | "TIMED_OUT" | "FAILED" | "ABANDONED"
+  correctCount Int          @default(0)
+  mistakes     Int          @default(0)
+  score        Int?
+  startedAt    DateTime     @default(now())
+  endedAt      DateTime?
+  moves        SudokuMove[]
+
+  @@index([userId, endedAt])
+  @@map("sudoku_games")
+}
+
+// Every value placed, in order: the audit trail and a way to replay a game.
+model SudokuMove {
+  id        String     @id @default(cuid())
+  gameId    String
+  game      SudokuGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  row       Int
+  col       Int
+  value     Int // 1-9, or 0 for clearing a wrong entry
+  isCorrect Boolean
+  createdAt DateTime   @default(now())
+
+  @@index([gameId, createdAt])
+  @@map("sudoku_moves")
 }

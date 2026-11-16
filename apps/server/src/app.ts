@@ -16,6 +16,10 @@ import { createLiveKitGateway, type LiveKitGateway } from './integrations/liveki
 import { createChatService } from './modules/chat/chat.service'
 import { registerChatSocketHandlers } from './modules/chat/chat.socket'
 import { meetingRoutes } from './modules/meetings/meetings.routes'
+import { reportRoutes } from './modules/reports/reports.routes'
+import { createReportsService } from './modules/reports/reports.service'
+import { sudokuRoutes } from './modules/sudoku/sudoku.routes'
+import { createSudokuService } from './modules/sudoku/sudoku.service'
 import { createMeetingsService } from './modules/meetings/meetings.service'
 import { registerMeetingSocketHandlers } from './modules/meetings/meetings.socket'
 import { whiteboardRoutes } from './modules/whiteboard/whiteboard.routes'
@@ -34,6 +38,8 @@ export interface AppConfig {
   apiRateLimit?: number
   /** Replaces the real LiveKit client, e.g. with a fake in tests. */
   livekit?: LiveKitGateway
+  /** Replaces the clock for Sudoku timers, so tests can make time pass. */
+  now?: () => Date
 }
 
 export async function buildApp(options: FastifyServerOptions = {}, config: AppConfig = {}) {
@@ -86,6 +92,8 @@ export async function buildApp(options: FastifyServerOptions = {}, config: AppCo
   const chat = createChatService({ prisma, meetings })
   const whiteboard = createWhiteboardService({ prisma, meetings, log: app.log })
   const boardLimiter = createSlidingWindowLimiter(BOARD_RATE_LIMIT)
+  const sudoku = createSudokuService({ prisma, now: config.now })
+  const reports = createReportsService({ prisma, sudoku })
 
   io.on('connection', socket => {
     registerMeetingSocketHandlers(io, socket, { meetings, log: app.log })
@@ -102,6 +110,8 @@ export async function buildApp(options: FastifyServerOptions = {}, config: AppCo
   await app.register(authRoutes)
   await app.register(meetingRoutes, { meetings, chat })
   await app.register(whiteboardRoutes, { whiteboard })
+  await app.register(sudokuRoutes, { sudoku })
+  await app.register(reportRoutes, { reports })
 
   return app
 }
