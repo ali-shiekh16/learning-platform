@@ -1,10 +1,18 @@
+import type { ReactNode } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router'
 import type { Role } from '@app/shared'
 import { FullPageMessage, FullPageSpinner } from '@/components/full-page'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser } from '@/hooks/use-auth'
 
-export function RequireAuth({ roles }: { roles?: Role[] }) {
+export function RequireAuth({
+  roles,
+  signedOutHome,
+}: {
+  roles?: Role[]
+  /** Shown at / to visitors who aren't signed in, instead of sending them to sign in. */
+  signedOutHome?: ReactNode
+}) {
   const { user, isLoading, error, retry } = useCurrentUser()
   const location = useLocation()
 
@@ -19,6 +27,7 @@ export function RequireAuth({ roles }: { roles?: Role[] }) {
     )
   }
   if (!user) {
+    if (signedOutHome && location.pathname === '/') return signedOutHome
     const redirect = encodeURIComponent(location.pathname + location.search)
     return <Navigate to={`/sign-in?redirect=${redirect}`} replace />
   }

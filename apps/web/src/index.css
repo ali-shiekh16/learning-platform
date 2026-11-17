@@ -189,6 +189,15 @@
       transparent 0 1.75rem,
       var(--rule) 1.75rem calc(1.75rem + 1px)
     );
+
+  /* Until the page is wide enough for content to clear the margin, keep only the ruled lines. */
+  @media (width < 78rem) {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 1.75rem,
+      var(--rule) 1.75rem calc(1.75rem + 1px)
+    );
+  }
 }
 
 /* Squared maths paper, for the whiteboard frame. */

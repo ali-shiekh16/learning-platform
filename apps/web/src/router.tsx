@@ -4,6 +4,7 @@ import { FullPageMessage, FullPageSpinner } from '@/components/full-page'
 import { RequireAuth } from '@/components/require-auth'
 import { RouteError } from '@/components/route-error'
 import { DashboardPage } from '@/pages/dashboard-page'
+import { LandingPage } from '@/pages/landing-page'
 import { MeetingsPage } from '@/pages/meetings-page'
 import { ReportPage } from '@/pages/report-page'
 import { ReportsPage } from '@/pages/reports-page'
@@ -21,7 +22,7 @@ export const router = createBrowserRouter([
       { path: '/sign-in', element: <SignInPage /> },
       { path: '/sign-up', element: <SignUpPage /> },
       {
-        element: <RequireAuth />,
+        element: <RequireAuth signedOutHome={<LandingPage />} />,
         children: [
           {
             element: <AppShell />,
