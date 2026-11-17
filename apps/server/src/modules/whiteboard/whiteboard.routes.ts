@@ -13,7 +13,7 @@ export async function whiteboardRoutes(
   app.get(
     '/api/meetings/:id/whiteboard',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags: ['whiteboard'],
         summary: 'The meeting’s board: all elements (including deleted ones) and lock state',

@@ -17,12 +17,12 @@ export async function sudokuRoutes(
 ) {
   const app = fastify.withTypeProvider<ZodTypeProvider>()
   const tags = ['sudoku']
-  const preHandler = requireRole('STUDENT')
+  const preValidation = requireRole('STUDENT')
 
   app.get(
     '/api/sudoku/games/current',
     {
-      preHandler,
+      preValidation,
       schema: {
         tags,
         summary: 'Your game in progress, or null',
@@ -35,7 +35,7 @@ export async function sudokuRoutes(
   app.post(
     '/api/sudoku/games',
     {
-      preHandler,
+      preValidation,
       schema: {
         tags,
         summary: 'Start a game (ends any game still open). Returns the puzzle, never the solution',
@@ -50,7 +50,7 @@ export async function sudokuRoutes(
   app.get(
     '/api/sudoku/games/:id',
     {
-      preHandler,
+      preValidation,
       schema: {
         tags,
         summary: 'Resume a game: board, mistakes and seconds left',
@@ -64,7 +64,7 @@ export async function sudokuRoutes(
   app.post(
     '/api/sudoku/games/:id/moves',
     {
-      preHandler,
+      preValidation,
       schema: {
         tags,
         summary: 'Place a value (1–9) or clear a wrong entry (0); answered with correct or not',
@@ -79,7 +79,7 @@ export async function sudokuRoutes(
   app.post(
     '/api/sudoku/games/:id/finish',
     {
-      preHandler,
+      preValidation,
       schema: {
         tags,
         summary: 'Stop playing (ABANDONED, or TIMED_OUT if the time had run out)',

@@ -42,7 +42,7 @@ export async function authRoutes(app: FastifyInstance) {
   app.get(
     '/api/me',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags: ['auth'],
         summary: 'The signed-in user',

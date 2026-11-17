@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { buildApp, type App } from '../src/app'
 import { prisma } from '../src/db/prisma'
-import { ORIGIN, randomIp } from './helpers'
+import { ORIGIN, randomIp, request, signUp } from './helpers'
 
 let app: App
 let limitedApp: App
@@ -79,5 +79,24 @@ describe('API rate limit', () => {
 describe('request decoration', () => {
   it('declares request.user up front', () => {
     expect(app.hasRequestDecorator('user')).toBe(true)
+  })
+})
+
+describe('route guards run before body validation', () => {
+  // A malformed body must not get a 400 before the caller is even identified.
+  it('answers 401 to a signed-out request, whatever its body', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/meetings',
+      headers: { origin: ORIGIN },
+      payload: { title: '' },
+    })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('answers 403 to the wrong role, whatever its body', async () => {
+    const student = await signUp(app)
+    const res = await request(app, student, 'POST', '/api/meetings', { title: '' })
+    expect(res.statusCode).toBe(403)
   })
 })

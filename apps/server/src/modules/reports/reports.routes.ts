@@ -19,7 +19,7 @@ export async function reportRoutes(
   app.get(
     '/api/reports',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary:
@@ -34,7 +34,7 @@ export async function reportRoutes(
   app.get(
     '/api/reports/:id',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary: 'One report: the finished game with its final grid',

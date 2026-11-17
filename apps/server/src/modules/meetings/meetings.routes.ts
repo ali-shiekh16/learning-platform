@@ -27,7 +27,7 @@ export async function meetingRoutes(
   app.get(
     '/api/meetings',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary: 'Live meetings (teachers also see their own past ones)',
@@ -40,7 +40,7 @@ export async function meetingRoutes(
   app.post(
     '/api/meetings',
     {
-      preHandler: requireRole('TEACHER'),
+      preValidation: requireRole('TEACHER'),
       schema: {
         tags,
         summary: 'Start a meeting',
@@ -55,7 +55,7 @@ export async function meetingRoutes(
   app.post(
     '/api/meetings/join',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary: 'Join a meeting by its code',
@@ -69,7 +69,7 @@ export async function meetingRoutes(
   app.get(
     '/api/meetings/:id',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary: 'A meeting you belong to',
@@ -83,7 +83,7 @@ export async function meetingRoutes(
   app.post(
     '/api/meetings/:id/join',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary: 'Join a live meeting',
@@ -97,7 +97,7 @@ export async function meetingRoutes(
   app.post(
     '/api/meetings/:id/token',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary: 'LiveKit access token for the meeting room',
@@ -111,7 +111,7 @@ export async function meetingRoutes(
   app.post(
     '/api/meetings/:id/end',
     {
-      preHandler: requireRole('TEACHER'),
+      preValidation: requireRole('TEACHER'),
       schema: {
         tags,
         summary: 'End the meeting for everyone',
@@ -125,7 +125,7 @@ export async function meetingRoutes(
   app.post(
     '/api/meetings/:id/participants/:userId/mute',
     {
-      preHandler: requireRole('TEACHER'),
+      preValidation: requireRole('TEACHER'),
       schema: {
         tags,
         summary: "Mute a participant's microphone",
@@ -142,7 +142,7 @@ export async function meetingRoutes(
   app.post(
     '/api/meetings/:id/participants/:userId/remove',
     {
-      preHandler: requireRole('TEACHER'),
+      preValidation: requireRole('TEACHER'),
       schema: {
         tags,
         summary: 'Remove a participant from the meeting',
@@ -163,7 +163,7 @@ export async function meetingRoutes(
   app.get(
     '/api/meetings/:id/messages',
     {
-      preHandler: requireAuth,
+      preValidation: requireAuth,
       schema: {
         tags,
         summary: 'Chat history, newest page first (use nextCursor for older messages)',
