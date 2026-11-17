@@ -57,6 +57,22 @@ teachers see a filterable, sortable table of the students who attended their mee
 read-along view highlighting the sentence and word being spoken. Uses the browser's Web Speech
 API behind a small engine interface ([ADR 009](docs/adr/009-tts-browser-engine.md)).
 
+**Design.** The light theme is a page of an exercise book: navy ink, blue for actions, red pen
+for mistakes and live classes, a yellow highlighter for the selected Sudoku cell. The dark theme
+is a chalkboard. It follows the system setting until the user picks one in the account menu.
+Signed-out visitors get a landing page at `/`; on phones the navigation moves into a side menu.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Landing page](docs/screenshots/landing.png) | ![Meeting room with the whiteboard open](docs/screenshots/meeting-room.png) |
+| Landing page for signed-out visitors | Meeting room: whiteboard, everyone's video beside it, chat |
+| ![Sudoku game in progress](docs/screenshots/sudoku.png) | ![Teacher's reports table, dark theme](docs/screenshots/teacher-reports-dark.png) |
+| Timed Sudoku: entries in blue ink, a mistake in red, the selected cell highlighted | Teacher's reports table (dark theme) |
+| ![Meetings list](docs/screenshots/meetings.png) | ![Game report, dark theme](docs/screenshots/report-dark.png) |
+| Meetings: live classes first, past ones below | A game report with the final grid (dark theme) |
+
 ## Architecture
 
 ```
@@ -85,7 +101,7 @@ packages/shared: Zod schemas, types and socket event maps used by both sides
 apps/web          React single-page app
 apps/server       Fastify API + Socket.IO + Prisma
 packages/shared   Zod schemas and types used by both
-docs/             spec, ADRs, database docs, improvements backlog
+docs/             spec, ADRs, database docs, improvements backlog, screenshots
 
 Dockerfile        production images: server, web (Caddy + built app), tools (migrations, seed)
 compose.prod.yml  production stack: caddy, server, db, migrate
