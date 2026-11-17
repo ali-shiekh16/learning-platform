@@ -4,10 +4,12 @@ An interactive learning and collaboration platform: live meetings with chat, a c
 whiteboard, timed Sudoku with performance reports, and text-to-speech — with Student and
 Teacher roles.
 
+- **Live demo:** https://learn.aleee.live (sign in with one of the [demo accounts](#demo-accounts))
 - **Spec:** [docs/spec.md](docs/spec.md) (including the assumptions that fill gaps in the brief, §9)
 - **Architecture decisions:** [docs/adr/](docs/adr/) (ADR 001–010)
 - **Database:** [docs/database.md](docs/database.md)
-- **API reference:** `http://localhost:3000/api/docs` (OpenAPI, generated from the route schemas)
+- **API reference:** https://learn.aleee.live/api/docs, or `http://localhost:3000/api/docs` locally
+  (OpenAPI, generated from the route schemas)
 - **Known limitations and next steps:** [docs/improvements.md](docs/improvements.md)
 
 ## Status
