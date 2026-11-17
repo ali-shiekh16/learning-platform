@@ -17,6 +17,19 @@
 	handle {
 		root * /srv
 
+		# Security headers for the app itself (the API sets its own with helmet).
+		# No Content-Security-Policy yet: Excalidraw and LiveKit load fonts and open
+		# connections to other domains, so a policy needs testing (docs/improvements.md).
+		header {
+			Strict-Transport-Security "max-age=31536000; includeSubDomains"
+			X-Content-Type-Options "nosniff"
+			# Nobody may load the app in a frame (clickjacking).
+			X-Frame-Options "DENY"
+			Referrer-Policy "strict-origin-when-cross-origin"
+			# Camera, microphone and screen sharing only for this site; nothing else.
+			Permissions-Policy "camera=(self), microphone=(self), display-capture=(self), geolocation=(), payment=(), usb=()"
+		}
+
 		# Vite gives built assets content hashes, so they can be cached forever.
 		@assets path /assets/*
 		header @assets Cache-Control "public, max-age=31536000, immutable"

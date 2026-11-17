@@ -72,6 +72,14 @@ before the final submission.
     quotas and rate limits (billed per character), a "Natural voices" group in the voice
     dropdown, and a fallback to browser voices when the service fails.
 
+## From the live-site review
+
+15. **Content-Security-Policy for the app** — Caddy now sends HSTS, nosniff, frame denial,
+    referrer and permissions policies, but no CSP. Excalidraw loads fonts and LiveKit opens
+    connections to other domains, so a policy should start as
+    `Content-Security-Policy-Report-Only`, be tuned against real meetings and boards, then
+    be enforced.
+
 ## From the Module 1 review
 
 4. **Explicit database pool settings** — `apps/server/src/db/prisma.ts` relies on
