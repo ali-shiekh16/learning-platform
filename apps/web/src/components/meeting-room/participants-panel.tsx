@@ -8,14 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useMuteParticipant, useRemoveParticipant } from '@/hooks/use-meetings'
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map(part => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+import { initials } from '@/lib/utils'
 
 /** Role comes from the attributes our server put in the participant's LiveKit token. */
 const roleOf = (participant: Participant) =>
@@ -66,7 +59,9 @@ export function ParticipantsPanel({
             className="flex items-center gap-3 rounded-md p-2 hover:bg-muted"
           >
             <Avatar className="size-8">
-              <AvatarFallback>{initials(name)}</AvatarFallback>
+              <AvatarFallback className="bg-secondary text-xs font-bold text-secondary-foreground">
+                {initials(name)}
+              </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">

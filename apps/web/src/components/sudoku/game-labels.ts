@@ -8,15 +8,13 @@ export const STATUS_LABEL: Record<GameStatus, string> = {
   ABANDONED: 'Quit',
 }
 
-export const STATUS_VARIANT: Record<
-  GameStatus,
-  'default' | 'secondary' | 'destructive' | 'outline'
-> = {
-  IN_PROGRESS: 'outline',
-  COMPLETED: 'default',
-  TIMED_OUT: 'secondary',
-  FAILED: 'destructive',
-  ABANDONED: 'secondary',
+/** Badge colours: green for a solved grid, red pen for too many mistakes, highlighter for time. */
+export const STATUS_CLASS: Record<GameStatus, string> = {
+  IN_PROGRESS: 'bg-secondary text-secondary-foreground',
+  COMPLETED: 'bg-success/12 text-success',
+  TIMED_OUT: 'bg-highlight text-highlight-foreground',
+  FAILED: 'bg-destructive/10 text-destructive',
+  ABANDONED: 'bg-muted text-muted-foreground',
 }
 
 /** 754 → "12:34". */

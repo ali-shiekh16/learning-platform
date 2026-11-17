@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/page-header'
 import { TtsPanel } from '@/components/tts/tts-panel'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -5,13 +6,10 @@ import { Card, CardContent } from '@/components/ui/card'
 export function TtsPage() {
   return (
     <div className="mx-auto grid max-w-3xl gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Text to speech</h1>
-        <p className="text-muted-foreground">
-          Paste any text and listen to it, with the voices your browser offers. The text stays on
-          your device.
-        </p>
-      </div>
+      <PageHeader
+        title="Text to speech"
+        description="Paste any text and listen to it, with the voices your browser offers. The text stays on your device."
+      />
       <Card>
         <CardContent>
           <TtsPanel />

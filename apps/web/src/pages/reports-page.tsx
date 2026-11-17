@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { DIFFICULTY_SETTINGS, type ReportListQuery } from '@app/shared'
 import { FullPageSpinner } from '@/components/full-page'
-import { formatSeconds, STATUS_LABEL, STATUS_VARIANT } from '@/components/sudoku/game-labels'
+import { PageHeader } from '@/components/page-header'
+import { formatSeconds, STATUS_CLASS, STATUS_LABEL } from '@/components/sudoku/game-labels'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser } from '@/hooks/use-auth'
@@ -10,7 +11,7 @@ import { useReports } from '@/hooks/use-sudoku'
 
 const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 const selectClass =
-  'h-9 rounded-md border border-input bg-background px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none'
+  'h-9 rounded-md border border-input bg-card px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/70 focus-visible:outline-none'
 
 /** Students: their own games. Teachers: a table of their students' games. */
 export function ReportsPage() {
@@ -24,21 +25,21 @@ export function ReportsPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">{isTeacher ? 'Student reports' : 'My reports'}</h1>
-          <p className="text-muted-foreground">
-            {isTeacher
-              ? 'Sudoku results of students who attended your meetings.'
-              : 'Every game you finished, with its score.'}
-          </p>
-        </div>
-        {!isTeacher && (
-          <Button asChild>
-            <Link to="/sudoku">Play Sudoku</Link>
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title={isTeacher ? 'Student reports' : 'My reports'}
+        description={
+          isTeacher
+            ? 'Sudoku results of students who attended your meetings.'
+            : 'Every game you finished, with its score.'
+        }
+        action={
+          !isTeacher && (
+            <Button asChild>
+              <Link to="/sudoku">Play Sudoku</Link>
+            </Button>
+          )
+        }
+      />
 
       <div className="flex flex-wrap gap-3">
         {isTeacher && (
@@ -80,23 +81,23 @@ export function ReportsPage() {
       )}
 
       {reports.data && reports.data.reports.length === 0 ? (
-        <p className="text-muted-foreground">
+        <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
           {isTeacher
             ? 'No reports yet. They appear when students who joined your meetings play Sudoku.'
-            : 'No games yet.'}
+            : 'No games yet. Finish a game of Sudoku and its report appears here.'}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-background">
+        <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full text-sm">
-            <thead className="border-b bg-muted/50 text-left text-muted-foreground">
+            <thead className="border-b text-left text-muted-foreground">
               <tr>
-                <th className="px-3 py-2 font-medium">Date</th>
-                {isTeacher && <th className="px-3 py-2 font-medium">Student</th>}
-                <th className="px-3 py-2 font-medium">Difficulty</th>
-                <th className="px-3 py-2 font-medium">Result</th>
-                <th className="px-3 py-2 text-right font-medium">Score</th>
-                <th className="px-3 py-2 text-right font-medium">Accuracy</th>
-                <th className="px-3 py-2 text-right font-medium">Time</th>
+                <th className="px-4 py-3 font-bold">Date</th>
+                {isTeacher && <th className="px-4 py-3 font-bold">Student</th>}
+                <th className="px-4 py-3 font-bold">Difficulty</th>
+                <th className="px-4 py-3 font-bold">Result</th>
+                <th className="px-4 py-3 text-right font-bold">Score</th>
+                <th className="px-4 py-3 text-right font-bold">Accuracy</th>
+                <th className="px-4 py-3 text-right font-bold">Time</th>
               </tr>
             </thead>
             <tbody>
@@ -106,24 +107,25 @@ export function ReportsPage() {
                   className="cursor-pointer border-b last:border-0 hover:bg-muted/50"
                   onClick={() => navigate(`/reports/${report.id}`)}
                 >
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-3">
                     {/* A real link too, for keyboard and screen-reader users. */}
-                    <Link to={`/reports/${report.id}`} className="hover:underline">
+                    <Link
+                      to={`/reports/${report.id}`}
+                      className="font-medium text-primary underline-offset-4 hover:underline"
+                    >
                       {dateTime.format(new Date(report.endedAt))}
                     </Link>
                   </td>
-                  {isTeacher && <td className="px-3 py-2">{report.student.name}</td>}
-                  <td className="px-3 py-2">{DIFFICULTY_SETTINGS[report.difficulty].label}</td>
-                  <td className="px-3 py-2">
-                    <Badge variant={STATUS_VARIANT[report.status]}>
+                  {isTeacher && <td className="px-4 py-3">{report.student.name}</td>}
+                  <td className="px-4 py-3">{DIFFICULTY_SETTINGS[report.difficulty].label}</td>
+                  <td className="px-4 py-3">
+                    <Badge className={STATUS_CLASS[report.status]}>
                       {STATUS_LABEL[report.status]}
                     </Badge>
                   </td>
-                  <td className="px-3 py-2 text-right font-semibold tabular-nums">
-                    {report.score}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">{report.accuracy}%</td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  <td className="px-4 py-3 text-right font-bold tabular-nums">{report.score}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{report.accuracy}%</td>
+                  <td className="px-4 py-3 text-right tabular-nums">
                     {formatSeconds(report.durationS)}
                   </td>
                 </tr>

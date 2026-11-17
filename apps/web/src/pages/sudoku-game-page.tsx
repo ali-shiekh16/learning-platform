@@ -98,8 +98,8 @@ function Board({ game, receivedAt }: { game: Game; receivedAt: number }) {
   return (
     <div className="mx-auto grid max-w-3xl gap-4">
       <header className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">Sudoku</h1>
-        <Badge variant="outline">{settings.label}</Badge>
+        <h1 className="text-3xl font-bold tracking-tight">Sudoku</h1>
+        <Badge variant="secondary">{settings.label}</Badge>
         <div className="ml-auto flex items-center gap-4 text-sm">
           <span aria-live="polite">
             Mistakes{' '}
@@ -111,8 +111,8 @@ function Board({ game, receivedAt }: { game: Game; receivedAt: number }) {
             role="timer"
             aria-label={`${formatSeconds(secondsLeft)} left`}
             className={cn(
-              'rounded-md bg-muted px-2 py-1 font-mono text-lg tabular-nums',
-              lowTime && 'bg-destructive/10 font-semibold text-destructive',
+              'rounded-md border bg-card px-3 py-1 font-mono text-xl font-bold tabular-nums',
+              lowTime && 'border-destructive/40 bg-destructive/10 text-destructive',
             )}
           >
             {formatSeconds(secondsLeft)}
@@ -138,7 +138,7 @@ function Board({ game, receivedAt }: { game: Game; receivedAt: number }) {
               <Button
                 key={digit}
                 variant="outline"
-                className="h-12 text-xl"
+                className="h-12 text-xl font-bold text-ink"
                 onClick={() => place(digit)}
                 disabled={move.isPending}
               >

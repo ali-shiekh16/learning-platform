@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import {
   CarouselLayout,
   ControlBar,
@@ -8,6 +8,12 @@ import {
   useTracks,
 } from '@livekit/components-react'
 import { Track } from 'livekit-client'
+
+const CONTROL_LABELS: Record<string, string> = {
+  microphone: 'Microphone',
+  camera: 'Camera',
+  screen_share: 'Share screen',
+}
 
 /**
  * Video tiles plus microphone, camera and screen-share controls, from LiveKit's React
@@ -28,8 +34,24 @@ export function VideoStage({ board }: { board?: ReactNode }) {
     { onlySubscribed: false },
   )
 
+  // LiveKit's minimal control bar has icon-only buttons with no accessible names; name them.
+  const stageRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    for (const toggle of stageRef.current?.querySelectorAll('.lk-control-bar [data-lk-source]') ??
+      []) {
+      const label = CONTROL_LABELS[toggle.getAttribute('data-lk-source') ?? '']
+      if (!label) continue
+      toggle.setAttribute('aria-label', label)
+      // The device picker sits next to its toggle in the same button group.
+      toggle
+        .closest('.lk-button-group')
+        ?.querySelector('.lk-button-menu')
+        ?.setAttribute('aria-label', `Choose ${label.toLowerCase()}`)
+    }
+  })
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div ref={stageRef} className="flex h-full min-h-0 flex-col">
       {board ? (
         <div className="flex min-h-0 flex-1 flex-col gap-2 sm:flex-row">
           <div className="min-h-0 min-w-0 flex-1">{board}</div>

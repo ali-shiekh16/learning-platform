@@ -2,11 +2,11 @@ import { Link } from 'react-router'
 import { Video } from 'lucide-react'
 import type { Meeting } from '@app/shared'
 import { FullPageSpinner } from '@/components/full-page'
+import { LiveDot } from '@/components/live-dot'
 import { CreateMeetingDialog } from '@/components/meetings/create-meeting-dialog'
 import { JoinByCodeForm } from '@/components/meetings/join-by-code-form'
-import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCurrentUser } from '@/hooks/use-auth'
 import { useMeetings } from '@/hooks/use-meetings'
 
@@ -22,67 +22,82 @@ export function MeetingsPage() {
   const past = meetings?.filter(m => m.status === 'ENDED') ?? []
 
   return (
-    <div className="grid gap-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Meetings</h1>
-          <p className="text-muted-foreground">
-            {isTeacher ? 'Start a live class or reopen a running one.' : 'Join a live class.'}
-          </p>
-        </div>
-        {isTeacher ? <CreateMeetingDialog /> : <JoinByCodeForm />}
-      </div>
+    <div className="grid gap-10">
+      <PageHeader
+        title="Meetings"
+        description={
+          isTeacher ? 'Start a live class or reopen a running one.' : 'Join a live class.'
+        }
+        action={isTeacher ? <CreateMeetingDialog /> : <JoinByCodeForm />}
+      />
 
       {isPending && <FullPageSpinner />}
-      {error && <p className="text-destructive">Could not load meetings: {error.message}</p>}
+      {error && <p className="text-destructive">Couldn’t load meetings: {error.message}</p>}
 
       {meetings && (
         <>
-          <MeetingSection title="Live now" meetings={live} empty="No live meetings right now." />
-          {isTeacher && past.length > 0 && <MeetingSection title="Past meetings" meetings={past} />}
+          <section className="grid gap-3" aria-labelledby="live-heading">
+            <h2 id="live-heading" className="flex items-center gap-2 text-lg font-bold">
+              {live.length > 0 && <LiveDot />}
+              Live now
+            </h2>
+            {live.length === 0 ? (
+              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                {isTeacher
+                  ? 'No class is running. Start a meeting and share its code with your students.'
+                  : 'No class is running right now. When your teacher starts one it appears here, or you can join with the code they give you.'}
+              </p>
+            ) : (
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {live.map(meeting => (
+                  <li key={meeting.id}>
+                    <LiveMeetingCard meeting={meeting} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {isTeacher && past.length > 0 && (
+            <section className="grid gap-3" aria-labelledby="past-heading">
+              <h2 id="past-heading" className="text-lg font-bold">
+                Past meetings
+              </h2>
+              <ul className="divide-y rounded-xl border bg-card">
+                {past.map(meeting => (
+                  <li
+                    key={meeting.id}
+                    className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-4 py-3"
+                  >
+                    <span className="font-medium break-words">{meeting.title}</span>
+                    <span className="text-sm text-muted-foreground">
+                      Ended · {dateTime.format(new Date(meeting.createdAt))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </>
       )}
     </div>
   )
 }
 
-function MeetingSection(props: { title: string; meetings: Meeting[]; empty?: string }) {
+function LiveMeetingCard({ meeting }: { meeting: Meeting }) {
   return (
-    <section className="grid gap-3">
-      <h2 className="text-lg font-medium">{props.title}</h2>
-      {props.meetings.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{props.empty}</p>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {props.meetings.map(meeting => (
-            <MeetingCard key={meeting.id} meeting={meeting} />
-          ))}
-        </div>
-      )}
-    </section>
-  )
-}
-
-function MeetingCard({ meeting }: { meeting: Meeting }) {
-  const live = meeting.status === 'LIVE'
-  return (
-    <Card>
-      <CardHeader className="gap-2">
-        <CardTitle className="flex items-start justify-between gap-2">
-          <span className="break-words">{meeting.title}</span>
-          <Badge variant={live ? 'default' : 'outline'}>{live ? 'Live' : 'Ended'}</Badge>
-        </CardTitle>
-        <CardDescription>
-          {meeting.teacher.name} · {dateTime.format(new Date(meeting.createdAt))}
-        </CardDescription>
-        {live && (
-          <Button asChild size="sm" className="mt-2 justify-self-start">
-            <Link to={`/meetings/${meeting.id}`}>
-              <Video /> Join
-            </Link>
-          </Button>
-        )}
-      </CardHeader>
-    </Card>
+    <div className="flex h-full flex-col gap-4 rounded-xl border border-l-4 border-l-live bg-card p-5">
+      <div className="grid gap-1">
+        <h3 className="text-lg leading-snug font-bold break-words">{meeting.title}</h3>
+        <p className="text-sm text-muted-foreground">
+          {meeting.teacher.name} · started {dateTime.format(new Date(meeting.createdAt))}
+        </p>
+      </div>
+      <Button asChild className="mt-auto self-start">
+        <Link to={`/meetings/${meeting.id}`}>
+          <Video /> Join class
+        </Link>
+      </Button>
+    </div>
   )
 }

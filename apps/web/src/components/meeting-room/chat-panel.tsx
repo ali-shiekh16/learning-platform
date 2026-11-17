@@ -82,7 +82,9 @@ export function ChatPanel({
           </Button>
         )}
         {!chat.isLoading && chat.messages.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground">No messages yet. Say hello!</p>
+          <p className="text-center text-sm text-muted-foreground">
+            No messages yet. Ask a question or say hello.
+          </p>
         )}
         {chat.messages.map(message => (
           <MessageItem

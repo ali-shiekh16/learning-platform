@@ -5,7 +5,7 @@ import { TTS_MAX_LENGTH, useSpeech, type TextRange } from '@/hooks/use-speech'
 import { cn } from '@/lib/utils'
 
 const fieldClass =
-  'rounded-md border border-input bg-background px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-60'
+  'rounded-md border border-input bg-background px-3 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/70 focus-visible:outline-none disabled:opacity-60'
 
 /**
  * The text-to-speech tool: text box, voice, speed and pitch, Play / Pause / Resume /
@@ -191,7 +191,7 @@ function Highlighted({
       {inChunk ? (
         <>
           {text.slice(chunk.start, word.start)}
-          <mark className="rounded-sm bg-yellow-200 text-foreground dark:bg-yellow-500/40">
+          <mark className="rounded-sm bg-highlight text-highlight-foreground">
             {text.slice(word.start, word.end)}
           </mark>
           {text.slice(word.end, chunk.end)}

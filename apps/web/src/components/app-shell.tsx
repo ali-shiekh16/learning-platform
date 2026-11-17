@@ -1,11 +1,11 @@
 import { Link, NavLink, Outlet, useMatch, useNavigate } from 'react-router'
 import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Brand } from '@/components/brand'
+import { ConnectionWarning } from '@/components/connection-status'
+import { MobileNav } from '@/components/mobile-nav'
+import { UserMenu } from '@/components/user-menu'
 import { useCurrentUser, useSignOut } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
-import { useSocketStatus } from '@/hooks/use-socket'
-import type { SocketStatus } from '@/lib/socket'
 
 const NAV_LINKS = [
   { to: '/meetings', label: 'Meetings' },
@@ -14,16 +14,9 @@ const NAV_LINKS = [
   { to: '/tools/tts', label: 'Text to speech' },
 ]
 
-const STATUS_LABEL: Record<SocketStatus, string> = {
-  connected: 'Live',
-  connecting: 'Connecting…',
-  offline: 'Offline',
-}
-
 /** Header + page content for every signed-in page. */
 export function AppShell() {
   const { user } = useCurrentUser()
-  const status = useSocketStatus()
   const signOut = useSignOut()
   const navigate = useNavigate()
   const inMeetingRoom = useMatch('/meetings/:id') !== null
@@ -34,22 +27,24 @@ export function AppShell() {
       onError: error => toast.error(error.message),
     })
 
+  const links = NAV_LINKS.filter(link => !link.studentsOnly || user?.role === 'STUDENT')
+
   return (
-    <div className="min-h-svh bg-muted/40">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4">
-          <Link to="/" className="font-semibold">
-            Learning Platform
+    <div className="min-h-svh bg-background">
+      <header className="sticky top-0 z-40 border-b bg-card">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-4">
+          <Link to="/" className="shrink-0">
+            <Brand />
           </Link>
-          <nav className="flex gap-1 text-sm">
-            {NAV_LINKS.filter(link => !link.studentsOnly || user?.role === 'STUDENT').map(link => (
+          <nav aria-label="Main" className="hidden h-full items-stretch gap-1 md:flex">
+            {links.map(link => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-md px-2 py-1 text-muted-foreground hover:text-foreground',
-                    isActive && 'bg-muted text-foreground',
+                    'flex items-center border-b-2 border-transparent px-2 pt-0.5 text-sm font-medium text-muted-foreground hover:text-foreground',
+                    isActive && 'border-primary text-foreground',
                   )
                 }
               >
@@ -59,36 +54,22 @@ export function AppShell() {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <span
-              className="flex items-center gap-1.5 text-xs text-muted-foreground"
-              title="Real-time connection"
-            >
-              <span
-                className={cn(
-                  'size-2 rounded-full',
-                  status === 'connected' && 'bg-emerald-500',
-                  status === 'connecting' && 'animate-pulse bg-amber-500',
-                  status === 'offline' && 'bg-muted-foreground',
-                )}
-              />
-              {STATUS_LABEL[status]}
-            </span>
+            <ConnectionWarning />
             {user && (
               <>
-                <span className="hidden text-sm sm:inline">{user.name}</span>
-                <Badge variant={user.role === 'TEACHER' ? 'default' : 'secondary'}>
-                  {user.role === 'TEACHER' ? 'Teacher' : 'Student'}
-                </Badge>
+                <div className="hidden md:block">
+                  <UserMenu user={user} onSignOut={handleSignOut} />
+                </div>
+                <div className="md:hidden">
+                  <MobileNav user={user} links={links} onSignOut={handleSignOut} />
+                </div>
               </>
             )}
-            <Button variant="ghost" size="sm" onClick={handleSignOut} disabled={signOut.isPending}>
-              Sign out
-            </Button>
           </div>
         </div>
       </header>
       {/* The meeting room uses the whole window; other pages keep a readable width. */}
-      <main className={cn('mx-auto p-4 sm:p-6', !inMeetingRoom && 'max-w-6xl')}>
+      <main className={cn('mx-auto p-4 sm:p-6', !inMeetingRoom && 'max-w-6xl sm:py-10')}>
         <Outlet />
       </main>
     </div>

@@ -1,13 +1,20 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@fontsource-variable/geist';
+@import '@fontsource-variable/atkinson-hyperlegible-next';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
+  --font-sans: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-ink: var(--ink);
+  --color-live: var(--live);
+  --color-live-foreground: var(--live-foreground);
+  --color-success: var(--success);
+  --color-rule: var(--rule);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,73 +55,94 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Exercise book theme. Light is a page of an exercise book: paper, navy ink, blue for actions,
+ * red pen for mistakes and live classes, a yellow highlighter for selection. Dark is the
+ * chalkboard: green board, chalk white, chalk yellow for actions.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #f6f8fc;
+  --foreground: #1b2b4b;
+  --card: #ffffff;
+  --card-foreground: #1b2b4b;
+  --popover: #ffffff;
+  --popover-foreground: #1b2b4b;
+  --primary: #2547c9;
+  --primary-foreground: #ffffff;
+  --secondary: #e7edfb;
+  --secondary-foreground: #1d3a9c;
+  --muted: #edf1f8;
+  --muted-foreground: #52607a;
+  --accent: #e7edfb;
+  --accent-foreground: #1b2b4b;
+  --destructive: #c42e27;
+  --border: #d5dcea;
+  --input: #c3cddf;
+  --ring: #2547c9;
+  --ink: #2547c9;
+  --live: #c42e27;
+  --live-foreground: #ffffff;
+  --success: #1c7a4c;
+  --highlight: #fff0a3;
+  --highlight-foreground: #1b2b4b;
+  --rule: #dfe6f2;
+  --margin-line: #efb3ad;
+  --chart-1: #2547c9;
+  --chart-2: #c42e27;
+  --chart-3: #1c7a4c;
+  --chart-4: #b7791f;
+  --chart-5: #52607a;
+  --radius: 0.5rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1b2b4b;
+  --sidebar-primary: #2547c9;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7edfb;
+  --sidebar-accent-foreground: #1b2b4b;
+  --sidebar-border: #d5dcea;
+  --sidebar-ring: #2547c9;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #1c2723;
+  --foreground: #eef1ea;
+  --card: #23302b;
+  --card-foreground: #eef1ea;
+  --popover: #26352f;
+  --popover-foreground: #eef1ea;
+  --primary: #f2d16b;
+  --primary-foreground: #1c2723;
+  --secondary: #2f3f38;
+  --secondary-foreground: #eef1ea;
+  --muted: #2b3a34;
+  --muted-foreground: #aab6af;
+  --accent: #2f3f38;
+  --accent-foreground: #eef1ea;
+  --destructive: #f7a194;
+  --border: rgb(238 241 234 / 14%);
+  --input: rgb(238 241 234 / 22%);
+  --ring: #f2d16b;
+  --ink: #9cc0ff;
+  --live: #f7a194;
+  --live-foreground: #1c2723;
+  --success: #8fd6a8;
+  --highlight: #4d4627;
+  --highlight-foreground: #fff6cf;
+  --rule: rgb(238 241 234 / 6%);
+  --margin-line: rgb(242 139 125 / 35%);
+  --chart-1: #f2d16b;
+  --chart-2: #f28b7d;
+  --chart-3: #8fd6a8;
+  --chart-4: #9cc0ff;
+  --chart-5: #aab6af;
+  --sidebar: #23302b;
+  --sidebar-foreground: #eef1ea;
+  --sidebar-primary: #f2d16b;
+  --sidebar-primary-foreground: #1c2723;
+  --sidebar-accent: #2f3f38;
+  --sidebar-accent-foreground: #eef1ea;
+  --sidebar-border: rgb(238 241 234 / 14%);
+  --sidebar-ring: #f2d16b;
 }
 
 @layer base {
@@ -126,5 +154,79 @@
   }
   html {
     @apply font-sans;
+    color-scheme: light;
   }
+  html.dark {
+    color-scheme: dark;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  /* Links and Sudoku cells have no focus style of their own; give them a solid ring. */
+  a:focus-visible {
+    @apply rounded-sm outline-2 outline-offset-2 outline-ring;
+  }
+  [role='gridcell']:focus-visible {
+    @apply outline-2 -outline-offset-2 outline-ring;
+  }
+}
+
+/* Ruled exercise-book paper with a red margin line. */
+@utility ruled-paper {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 3.5rem,
+      var(--margin-line) 3.5rem,
+      var(--margin-line) calc(3.5rem + 1px),
+      transparent calc(3.5rem + 1px)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 1.75rem,
+      var(--rule) 1.75rem calc(1.75rem + 1px)
+    );
+}
+
+/* Squared maths paper, for the whiteboard frame. */
+@utility squared-paper {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(var(--rule) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+  background-size: 1.25rem 1.25rem;
+}
+
+/*
+ * LiveKit's video stage, drawn as the classroom's chalkboard in both themes. The doubled
+ * selector wins over LiveKit's stylesheet, which loads after this one.
+ */
+.lk-room-container[data-lk-theme='default'] {
+  --lk-bg: transparent;
+  --lk-bg2: #23302b;
+  --lk-bg3: #2b3a34;
+  --lk-bg4: #33443d;
+  --lk-bg5: #3b4d45;
+  --lk-fg: #eef1ea;
+  --lk-border-color: rgb(238 241 234 / 14%);
+  --lk-accent-bg: #f2d16b;
+  --lk-accent-fg: #1c2723;
+  --lk-accent2: #f4d97f;
+  --lk-accent3: #f6e093;
+  --lk-accent4: #f8e7a8;
+  --lk-font-family: var(--font-sans);
+  --lk-border-radius: 0.5rem;
+}
+
+.chalkboard {
+  background-color: #1c2723;
+  color: #eef1ea;
+}
+
+/* On the dark theme the page is already a chalkboard, so the stage needs an edge. */
+.dark .chalkboard {
+  box-shadow: inset 0 0 0 1px rgb(238 241 234 / 14%);
 }

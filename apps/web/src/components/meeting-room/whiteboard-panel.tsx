@@ -38,7 +38,7 @@ export default function WhiteboardPanel({
 
   return (
     // text-foreground: LiveKit's dark theme makes all text inside the room white.
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border bg-background text-foreground">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg bg-card text-card-foreground">
       <div className="flex items-center gap-2 border-b px-3 py-2 text-sm">
         <Badge variant={board.locked ? 'secondary' : 'default'}>
           {board.locked ? <Lock /> : <LockOpen />}

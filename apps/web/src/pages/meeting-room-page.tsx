@@ -7,6 +7,7 @@ import { Copy, LogOut, PenLine, PhoneOff, Video } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Meeting, PublicUser } from '@app/shared'
 import { FullPageMessage, FullPageSpinner } from '@/components/full-page'
+import { LiveDot } from '@/components/live-dot'
 import { ChatPanel } from '@/components/meeting-room/chat-panel'
 import { ParticipantsPanel } from '@/components/meeting-room/participants-panel'
 import { TtsPanel } from '@/components/tts/tts-panel'
@@ -86,34 +87,57 @@ function MeetingRoom({
       .catch(() => toast.error('Could not copy the code'))
 
   return (
-    <div className="grid gap-3">
-      <header className="flex flex-wrap items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-semibold">{meeting.title}</h1>
+    <div className="grid gap-4">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        {/* Own row on phones, so a long title isn't cut short by the controls. */}
+        <div className="min-w-0 flex-1 basis-full md:basis-auto">
+          <p className="flex items-center gap-2 text-xs font-bold text-live">
+            <LiveDot /> Live
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight break-words md:truncate">
+            {meeting.title}
+          </h1>
           <p className="text-sm text-muted-foreground">with {meeting.teacher.name}</p>
         </div>
         <Tabs value={stage} onValueChange={value => setStage(value as 'video' | 'board')}>
           <TabsList>
-            <TabsTrigger value="video">
+            {/* Both views render in the one stage below, which has no Radix tab panel. */}
+            <TabsTrigger value="video" aria-controls="meeting-stage">
               <Video /> Video
             </TabsTrigger>
-            <TabsTrigger value="board">
+            <TabsTrigger value="board" aria-controls="meeting-stage">
               <PenLine /> Whiteboard
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        <Button variant="outline" size="sm" onClick={copyCode} aria-label="Copy join code">
-          <span className="font-mono tracking-widest">{meeting.joinCode}</span>
-          <Copy />
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => leave()}>
-          <LogOut /> Leave
-        </Button>
-        {isOwner && (
-          <Button variant="destructive" size="sm" onClick={onEnd} disabled={endMeeting.isPending}>
-            <PhoneOff /> End meeting
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Join code</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={copyCode}
+            aria-label={`Copy join code ${meeting.joinCode}`}
+            title="Copy join code"
+          >
+            <span className="font-mono text-sm font-bold tracking-widest">{meeting.joinCode}</span>
+            <Copy />
           </Button>
-        )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => leave()}>
+            <LogOut /> Leave
+          </Button>
+          {isOwner && (
+            <Button
+              size="sm"
+              className="bg-live text-live-foreground hover:bg-live/85"
+              onClick={onEnd}
+              disabled={endMeeting.isPending}
+            >
+              <PhoneOff /> End meeting
+            </Button>
+          )}
+        </div>
       </header>
 
       <LiveKitRoom
@@ -129,9 +153,9 @@ function MeetingRoom({
         onMediaDeviceFailure={() => toast.error('Could not access your camera or microphone.')}
         data-lk-theme="default"
         // `!`: LiveKit's .lk-room-container sets height: 100% and loads after Tailwind.
-        className="grid h-[calc(100svh-11rem)]! min-h-[480px] gap-3 lg:grid-cols-[1fr_340px]"
+        className="grid h-[calc(100svh-11.5rem)]! min-h-[480px] gap-3 lg:grid-cols-[1fr_340px]"
       >
-        <div className="min-h-0 overflow-hidden rounded-lg">
+        <div id="meeting-stage" className="chalkboard min-h-0 overflow-hidden rounded-xl p-2">
           <VideoStage
             board={
               stage === 'board' && (
@@ -146,12 +170,12 @@ function MeetingRoom({
         <Tabs
           value={tab}
           onValueChange={setTab}
-          className="flex min-h-0 flex-col overflow-hidden rounded-lg border bg-background text-foreground"
+          className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card text-card-foreground"
         >
-          <TabsList className="m-2 grid grid-cols-3">
+          <TabsList className="m-2 grid w-auto grid-cols-3">
             <TabsTrigger value="chat">Chat</TabsTrigger>
             <TabsTrigger value="participants">Participants</TabsTrigger>
-            <TabsTrigger value="tts">TTS</TabsTrigger>
+            <TabsTrigger value="tts">Read aloud</TabsTrigger>
           </TabsList>
           {/* forceMount keeps the chat mounted (and its socket listener alive) on the other tab. */}
           <TabsContent
