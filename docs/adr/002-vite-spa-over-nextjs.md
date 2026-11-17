@@ -19,4 +19,4 @@ Build a **client-side single-page app with Vite and React Router**, served from 
 - **Next.js (App Router).** Excellent for content and SEO-driven sites; would be the right choice for future public pages (e.g. a course catalogue), which could be added as a separate app.
 
 ## Consequences
-- Fastify serves the built SPA in production; Vite proxies `/api` and the socket path in development, so cookies are always same-origin.
+- Caddy serves the built SPA in production, in front of the API (ADR 010); Vite proxies `/api` and the socket path in development, so cookies are always same-origin.

@@ -20,16 +20,16 @@ Architecture decisions and their reasoning are recorded in [`docs/adr/`](adr/).
 | Validation | Zod schemas in a shared package | [004](adr/004-fastify-backend.md) |
 | Audio/video | LiveKit Cloud (React components + Node server SDK) | [007](adr/007-livekit-video.md) |
 | Whiteboard | Excalidraw + custom sync layer over Socket.IO | [008](adr/008-excalidraw-whiteboard.md) |
-| Text-to-speech | Browser Web Speech API | — |
+| Text-to-speech | Browser Web Speech API | [009](adr/009-tts-browser-engine.md) |
 | Tests | Vitest | — |
-| Delivery | Docker Compose; hosted on Render/Railway | — |
+| Delivery | Docker Compose with Caddy (HTTPS), on one Oracle Cloud ARM VM | [010](adr/010-caddy-docker-deployment.md) |
 
 ---
 
 ## 2. Architecture
 
 ```
-                 same origin (Fastify serves the built SPA in prod; Vite proxies /api in dev)
+                 same origin (Caddy serves the built SPA in prod; Vite proxies /api in dev)
 React SPA ──REST/JSON──► Fastify API ──Prisma──► PostgreSQL
     │ ◄──Socket.IO─────► (same Node process)
     │                          │
@@ -48,7 +48,8 @@ apps/web          React SPA (Vite, shadcn/ui)
 apps/server       Fastify + Socket.IO + Prisma + better-auth
 packages/shared   Zod schemas, socket event types, shared constants
 docs/             spec, ADRs, database docs
-docker-compose.yml
+docker-compose.yml          Postgres for development
+Dockerfile, compose.prod.yml, Caddyfile   production stack (ADR 010)
 ```
 
 ---
