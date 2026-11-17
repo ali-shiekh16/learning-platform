@@ -1,0 +1,109 @@
+# Production stack: Caddy (HTTPS + SPA) → Node server → Postgres.
+#
+#   cp .env.production.example .env        # then fill in the values
+#   docker compose -f compose.prod.yml up -d --build
+#   docker compose -f compose.prod.yml run --rm migrate npm run db:seed   # once: demo accounts
+#
+# `up` runs pending database migrations (the `migrate` service) before the server starts.
+
+# Separate from the development docker-compose.yml, so the two never share containers or volumes.
+name: learning-platform-prod
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+x-app-env: &app-env
+  NODE_ENV: production
+  PORT: 3000
+  DATABASE_URL: postgresql://app:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/learning
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+  BETTER_AUTH_URL: https://${APP_DOMAIN:?set APP_DOMAIN in .env}
+  LIVEKIT_URL: ${LIVEKIT_URL:?set LIVEKIT_URL in .env}
+  LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?set LIVEKIT_API_KEY in .env}
+  LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:?set LIVEKIT_API_SECRET in .env}
+  # Caddy is the only way in, so the forwarded client IP and protocol can be trusted.
+  TRUST_PROXY: 'true'
+
+services:
+  caddy:
+    build:
+      context: .
+      target: web
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp' # HTTP/3
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+    volumes:
+      - caddy-data:/data # certificates: keep this volume, or Let's Encrypt limits may bite
+      - caddy-config:/config
+    depends_on:
+      server:
+        condition: service_healthy
+    logging: *logging
+
+  server:
+    build:
+      context: .
+      target: server
+    restart: unless-stopped
+    init: true
+    environment: *app-env
+    stop_grace_period: 20s # time to save open whiteboards on shutdown
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3000/api/health').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    logging: *logging
+
+  # One-off job: applies pending migrations, then exits. Also used for seeding.
+  migrate:
+    build:
+      context: .
+      target: tools
+    restart: 'no'
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: learning
+    # No published ports: only reachable from the other containers.
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U app -d learning']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging: *logging
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:

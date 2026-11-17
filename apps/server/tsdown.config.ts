@@ -10,6 +10,7 @@ export default defineConfig({
   platform: 'node',
   target: 'node22',
   outDir: 'dist',
+  fixedExtension: false, // emit dist/index.js (the package is "type": "module"), as `npm start` expects
   clean: true,
   noExternal: ['@app/shared'],
 })

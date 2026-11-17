@@ -12,7 +12,9 @@ apps/server/src/generated/
 # Environment
 .env
 .env.*
+*.env
 !.env.example
+!.env.production.example
 
 # Logs & OS
 *.log

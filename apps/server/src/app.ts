@@ -104,9 +104,12 @@ export async function buildApp(options: FastifyServerOptions = {}, config: AppCo
   // Save every unsaved board before the process exits.
   app.addHook('onClose', () => whiteboard.close())
 
-  app.get('/api/health', { schema: { hide: true }, config: { rateLimit: false } }, async () => ({
-    status: 'ok',
-  }))
+  // Polled by the container health check every few seconds, so don't log each request.
+  app.get(
+    '/api/health',
+    { schema: { hide: true }, config: { rateLimit: false }, logLevel: 'warn' },
+    async () => ({ status: 'ok' }),
+  )
   await app.register(authRoutes)
   await app.register(meetingRoutes, { meetings, chat })
   await app.register(whiteboardRoutes, { whiteboard })

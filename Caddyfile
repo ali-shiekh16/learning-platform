@@ -1,0 +1,32 @@
+# Public entry point. APP_DOMAIN comes from .env (e.g. learn.example.com).
+# Caddy obtains and renews the HTTPS certificate for it automatically.
+# For a local test, APP_DOMAIN=localhost uses Caddy's own local certificate instead.
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# API and real-time traffic go to the Node server. WebSocket upgrades and the
+	# X-Forwarded-For/-Proto/-Host headers are handled by reverse_proxy by default.
+	handle /api/* {
+		reverse_proxy server:3000
+	}
+	handle /socket.io/* {
+		reverse_proxy server:3000
+	}
+
+	# Everything else is the single-page app.
+	handle {
+		root * /srv
+
+		# Vite gives built assets content hashes, so they can be cached forever.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+
+		# index.html must always be revalidated so new deploys are picked up.
+		@html not path /assets/*
+		header @html Cache-Control "no-cache"
+
+		# Client-side routes (/meetings/abc, /sudoku/...) fall back to index.html.
+		try_files {path} /index.html
+		file_server
+	}
+}
