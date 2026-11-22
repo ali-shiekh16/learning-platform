@@ -155,18 +155,16 @@ export function LandingPage() {
 }
 
 function ThemeButton() {
-  const { theme, setTheme } = useTheme()
-  const dark = theme === 'dark'
-  const label = dark ? 'Use the light theme' : 'Use the dark theme'
+  const theme = useTheme()
   return (
     <Button
       variant="ghost"
       size="icon-lg"
-      onClick={() => setTheme(dark ? 'light' : 'dark')}
-      aria-label={label}
-      title={label}
+      onClick={theme.toggle}
+      aria-label={theme.toggleLabel}
+      title={theme.toggleLabel}
     >
-      {dark ? <Sun /> : <Moon />}
+      {theme.dark ? <Sun /> : <Moon />}
     </Button>
   )
 }

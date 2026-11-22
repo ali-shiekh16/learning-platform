@@ -29,11 +29,10 @@ export function SudokuGrid({
     <div
       role="grid"
       aria-label="Sudoku grid"
-      className="grid aspect-square w-full max-w-[min(100%,32rem)] grid-cols-9 overflow-hidden rounded-md border-2 border-foreground bg-card"
+      className="grid aspect-square w-full max-w-[min(100%,32rem)] grid-rows-9 overflow-hidden rounded-md border-2 border-foreground bg-card"
     >
-      {/* Rows are for screen readers only: `contents` keeps the cells on the 9-column grid. */}
       {ROWS.map(row => (
-        <div key={row} role="row" className="contents">
+        <div key={row} role="row" className="grid grid-cols-9">
           {[...board.slice(row * 9, row * 9 + 9)].map((digit, col) => {
             const cell = row * 9 + col
             const given = puzzle[cell] !== '0'
@@ -69,8 +68,8 @@ export function SudokuGrid({
                   given ? 'font-bold text-foreground' : 'font-medium text-ink',
                   related && 'bg-muted',
                   sameDigit && 'bg-secondary',
-                  // The selected cell is marked like a highlighter pen.
-                  isSelected && 'bg-highlight text-highlight-foreground',
+                  // The selected cell is marked like a highlighter pen; its digit keeps its colour.
+                  isSelected && 'bg-highlight',
                   // Wrong entries are red pen.
                   wrong.has(cell) && 'bg-destructive/10 font-bold text-destructive',
                 )}

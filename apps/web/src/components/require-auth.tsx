@@ -16,7 +16,12 @@ export function RequireAuth({
   const { user, isLoading, error, retry } = useCurrentUser()
   const location = useLocation()
 
+  const atHome = signedOutHome !== undefined && location.pathname === '/'
+
   if (isLoading) return <FullPageSpinner />
+  // The home page needs no data, so it stays up while the server is unreachable
+  // (e.g. during a restart); its sign-in links lead to the error if it persists.
+  if (error && atHome) return signedOutHome
   if (error) {
     return (
       <FullPageMessage
@@ -27,7 +32,7 @@ export function RequireAuth({
     )
   }
   if (!user) {
-    if (signedOutHome && location.pathname === '/') return signedOutHome
+    if (atHome) return signedOutHome
     const redirect = encodeURIComponent(location.pathname + location.search)
     return <Navigate to={`/sign-in?redirect=${redirect}`} replace />
   }

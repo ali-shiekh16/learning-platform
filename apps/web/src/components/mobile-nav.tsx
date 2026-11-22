@@ -22,14 +22,15 @@ export function MobileNav({
   user,
   links,
   onSignOut,
+  signingOut,
 }: {
   user: PublicUser
   links: { to: string; label: string }[]
   onSignOut: () => void
+  signingOut: boolean
 }) {
-  const { theme, setTheme } = useTheme()
+  const theme = useTheme()
   const status = useSocketStatus()
-  const dark = theme === 'dark'
   const [open, setOpen] = useState(false)
 
   return (
@@ -39,7 +40,8 @@ export function MobileNav({
           <Menu className="size-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-72">
+      {/* The variant prefix matches the sheet's own width class, so this one wins. */}
+      <SheetContent side="right" className="data-[side=right]:w-72">
         <SheetHeader className="border-b">
           <SheetTitle className="sr-only">Menu</SheetTitle>
           <div className="flex items-center gap-3">
@@ -73,11 +75,11 @@ export function MobileNav({
         </nav>
 
         <SheetFooter className="border-t">
-          <Button variant="outline" onClick={() => setTheme(dark ? 'light' : 'dark')}>
-            {dark ? <Sun /> : <Moon />}
-            {dark ? 'Light theme' : 'Dark theme'}
+          <Button variant="outline" onClick={theme.toggle}>
+            {theme.dark ? <Sun /> : <Moon />}
+            {theme.toggleLabel}
           </Button>
-          <Button variant="outline" onClick={onSignOut}>
+          <Button variant="outline" onClick={onSignOut} disabled={signingOut}>
             <LogOut /> Sign out
           </Button>
         </SheetFooter>

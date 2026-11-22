@@ -32,10 +32,17 @@ export function UserAvatar({ user }: { user: PublicUser }) {
 }
 
 /** Desktop: who is signed in, the theme switch and sign out, behind the avatar. */
-export function UserMenu({ user, onSignOut }: { user: PublicUser; onSignOut: () => void }) {
-  const { theme, setTheme } = useTheme()
+export function UserMenu({
+  user,
+  onSignOut,
+  signingOut,
+}: {
+  user: PublicUser
+  onSignOut: () => void
+  signingOut: boolean
+}) {
+  const theme = useTheme()
   const status = useSocketStatus()
-  const dark = theme === 'dark'
 
   return (
     <DropdownMenu>
@@ -60,12 +67,12 @@ export function UserMenu({ user, onSignOut }: { user: PublicUser; onSignOut: () 
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => setTheme(dark ? 'light' : 'dark')}>
-          {dark ? <Sun /> : <Moon />}
-          {dark ? 'Light theme' : 'Dark theme'}
+        <DropdownMenuItem onSelect={theme.toggle}>
+          {theme.dark ? <Sun /> : <Moon />}
+          {theme.toggleLabel}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onSignOut}>
+        <DropdownMenuItem onSelect={onSignOut} disabled={signingOut}>
           <LogOut />
           Sign out
         </DropdownMenuItem>

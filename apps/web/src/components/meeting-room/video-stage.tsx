@@ -34,21 +34,31 @@ export function VideoStage({ board }: { board?: ReactNode }) {
     { onlySubscribed: false },
   )
 
-  // LiveKit's minimal control bar has icon-only buttons with no accessible names; name them.
+  // LiveKit's minimal control bar has icon-only buttons with no accessible names; name them,
+  // and again whenever LiveKit adds or replaces buttons (it can without this component
+  // re-rendering, e.g. once the device list loads).
   const stageRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    for (const toggle of stageRef.current?.querySelectorAll('.lk-control-bar [data-lk-source]') ??
-      []) {
-      const label = CONTROL_LABELS[toggle.getAttribute('data-lk-source') ?? '']
-      if (!label) continue
-      toggle.setAttribute('aria-label', label)
-      // The device picker sits next to its toggle in the same button group.
-      toggle
-        .closest('.lk-button-group')
-        ?.querySelector('.lk-button-menu')
-        ?.setAttribute('aria-label', `Choose ${label.toLowerCase()}`)
+    const stage = stageRef.current
+    if (!stage) return
+    const label = () => {
+      for (const toggle of stage.querySelectorAll('.lk-control-bar [data-lk-source]')) {
+        const name = CONTROL_LABELS[toggle.getAttribute('data-lk-source') ?? '']
+        if (!name) continue
+        toggle.setAttribute('aria-label', name)
+        // The device picker sits next to its toggle in the same button group.
+        toggle
+          .closest('.lk-button-group')
+          ?.querySelector('.lk-button-menu')
+          ?.setAttribute('aria-label', `Choose ${name.toLowerCase()}`)
+      }
     }
-  })
+    label()
+    // Only added and removed nodes: our own attribute changes don't trigger it again.
+    const observer = new MutationObserver(label)
+    observer.observe(stage, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <div ref={stageRef} className="flex h-full min-h-0 flex-col">

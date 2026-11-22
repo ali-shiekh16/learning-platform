@@ -58,10 +58,15 @@ export function AppShell() {
             {user && (
               <>
                 <div className="hidden md:block">
-                  <UserMenu user={user} onSignOut={handleSignOut} />
+                  <UserMenu user={user} onSignOut={handleSignOut} signingOut={signOut.isPending} />
                 </div>
                 <div className="md:hidden">
-                  <MobileNav user={user} links={links} onSignOut={handleSignOut} />
+                  <MobileNav
+                    user={user}
+                    links={links}
+                    onSignOut={handleSignOut}
+                    signingOut={signOut.isPending}
+                  />
                 </div>
               </>
             )}

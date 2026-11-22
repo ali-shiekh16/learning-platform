@@ -49,5 +49,14 @@ export function useTheme() {
     window.dispatchEvent(new Event(CHANGE_EVENT))
   }
 
-  return { theme, setTheme }
+  const dark = theme === 'dark'
+  return {
+    theme,
+    dark,
+    setTheme,
+    /** Switches to the other theme. */
+    toggle: () => setTheme(dark ? 'light' : 'dark'),
+    /** Names what the switch changes to, for its button or menu item. */
+    toggleLabel: dark ? 'Light theme' : 'Dark theme',
+  }
 }
